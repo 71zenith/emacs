@@ -2,6 +2,8 @@
 
 [[file:preview.png]]
 
+** [[https://github.com/rayes0/emacs][inspiration]]
+
 ** deps
 - emacs v29 (native-comp)
 - cascadia code & cantarell font
