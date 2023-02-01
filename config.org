@@ -63,12 +63,14 @@
 ** theme setup
 #+begin_src elisp
   (load-theme 'tango)
-  (set-face-attribute 'mode-line nil :box '(:line-width 6 :color "#eeeeec")
-                      :background "#eeeeec"
+  (set-face-attribute 'mode-line nil :box '(:line-width 6 :color "#ede6e3")
+                      :background "#ede6e3"
                       :underline "grey")
-  (set-face-attribute 'mode-line-inactive nil :box '(:line-width 6 :color "#eeeeec")
-                      :background "#eeeeec")
+  (set-face-attribute 'mode-line-inactive nil :box '(:line-width 6 :color "#ede6e3")
+                      :background "#ede6e3")
   (set-frame-parameter (selected-frame) 'internal-border-width 20)
+  (set-background-color "#ede6e3")
+  (set-face-attribute 'org-block nil :background "#f5dad8")
 #+end_src
 
 ** modeline
@@ -154,7 +156,7 @@
 #+begin_src elisp
   (use-package dired
     :ensure nil
-    :bind (("C-x C-j" . dired-jump))
+    :bind (("C-x j" . dired-jump))
     :custom ((dired-listing-switches "-ahGl --time-style=+ -D"))
     :config
       (evil-collection-define-key 'normal 'dired-mode-map
