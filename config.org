@@ -99,9 +99,10 @@
     (setq-default dashboard-startup-banner "~/.emacs.d/avatar.gif"
                   dashboard-item-names '(("Recent Files:" . "Recent:"))
                   dashboard-center-content t
-                  dashboard-set-footer nil
                   dashboard-banner-logo-title "Is life real?"
-                  dashboard-items '((recents  . 10)))
+                  dashboard-items '((recents  . 10))
+                  dashboard-show-shortcuts nil
+                  dashboard-footer-messages '("Wait, who am i?"))
     (dashboard-setup-startup-hook))
 #+end_src
 
@@ -134,19 +135,31 @@
       ("C-k" . vertico-previous))
     :custom
     (vertico-cycle t)
-    :init
-    (vertico-mode))
+      :init
+      (vertico-mode))
 
   (use-package savehist
-    :init
-    (savehist-mode))
+     :init
+     (savehist-mode))
 #+end_src
 
 * magit setup
 #+begin_src elisp
   (use-package magit
     :ensure t
-    :commands magit-status)
+    :bind ("M-p" . magit-status))
+#+end_src
+
+* dired setup
+#+begin_src elisp
+  (use-package dired
+    :ensure nil
+    :bind (("C-x C-j" . dired-jump))
+    :custom ((dired-listing-switches "-ahGl --time-style=+ -D"))
+    :config
+      (evil-collection-define-key 'normal 'dired-mode-map
+        "h" 'dired-up-directory
+        "l" 'dired-find-file))
 #+end_src
 
 * revert garbage collection
