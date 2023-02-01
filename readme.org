@@ -7,4 +7,8 @@
 - cascadia code & cantarell font
 
 ** goal
-have a /comfy/ config with +10+ 15 packages
+have a /comfy/ config with +10+ <15 packages
+
+** won't be implemented
+- code specific
+- eye candy
