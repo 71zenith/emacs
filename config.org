@@ -1,0 +1,148 @@
+#+TITLE: minimal emacs
+#+AUTHOR: zen
+
+* optimisation
+#+begin_src emacs-lisp
+  (setq gc-cons-threshold (* 50 1000 1000))
+
+  (setq-default native-comp-async-report-warnings-errors nil)
+  (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
+#+end_src
+
+* package setup
+#+begin_src emacs-lisp
+  (require 'package)
+  (setq-default package-archives '(("melpa" . "https://melpa.org/packages/")
+                                   ("org" . "https://orgmode.org/elpa/")
+                                   ("elpa" . "https://elpa.gnu.org/packages/")))
+
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
+
+  (require 'use-package)
+  (setq-default use-package-always-ensure t)
+#+end_src
+
+* clean dirs
+#+begin_src emacs-lisp
+  (setq-default user-emacs-directory (expand-file-name "~/.cache/emacs/")
+                url-history-file (expand-file-name "url/history" user-emacs-directory))
+#+end_src
+
+* UI stuff
+** disable elements
+#+begin_src emacs-lisp
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+  (tooltip-mode -1)
+  (fringe-mode 0)
+  (menu-bar-mode -1)
+
+  (setq-default use-dialog-box nil
+                visible-bell nil
+                inhibit-startup-message t
+                ring-bell-function 'ignore
+                use-file-dialog nil
+                make-backup-files nil
+                auto-save-default nil
+                warning-minimum-level :error)
+
+  (defun display-startup-echo-area-message ()
+    (message ""))
+#+end_src
+
+** font setup
+#+begin_src emacs-lisp
+  (set-face-attribute 'default nil :font "Cascadia Code" :height 150)
+  (set-face-attribute 'fixed-pitch nil :font "Cascadia Code" :height 150)
+  (set-face-attribute 'fixed-pitch-serif nil :font "Cascadia Mono" :height 150)
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 150 :weight 'regular)
+#+end_src
+
+** theme setup
+#+begin_src emacs-lisp
+  (load-theme 'tango)
+  (set-face-attribute 'mode-line nil :box '(:line-width 6 :color "#eeeeec")
+                      :background "#eeeeec"
+                      :underline "grey")
+  (set-face-attribute 'mode-line-inactive nil :box '(:line-width 6 :color "#eeeeec")
+                      :background "#eeeeec")
+  (set-frame-parameter (selected-frame) 'internal-border-width 20)
+#+end_src
+
+** modeline
+
+#+begin_src emacs-lisp
+  (defun simple-mode-line-render (left right)
+    "Return a string of `window-width' length containing LEFT, and RIGHT
+   aligned respectively."
+    (let* ((available-width (- (window-width) (length left) 2)))
+      (format (format " %%s %%%ds " available-width) left right)))
+  (setq-default mode-line-format
+                '((:eval (simple-mode-line-render
+                  (format-mode-line "%I  %l:%c  %p")
+                  (format-mode-line "%b  (%m)  ")))))
+#+end_src
+
+** indentation
+#+begin_src emacs-lisp
+  (setq-default tab-width 2
+                evil-shift-width tab-width
+                indent-tabs-mode nil)
+#+end_src
+
+* startup screen
+#+begin_src emacs-lisp
+  (use-package dashboard
+    :ensure t
+    :config
+    (setq-default dashboard-startup-banner "~/.emacs.d/avatar.gif"
+    dashboard-center-content t
+    dashboard-set-footer nil
+    dashboard-banner-logo-title "Is life real?"
+    dashboard-items '((recents  . 10)))
+    (dashboard-setup-startup-hook))
+#+end_src
+
+* vi mode
+#+begin_src emacs-lisp
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+  (use-package evil
+    :ensure t
+    :init
+    (setq-default evil-want-keybinding nil)
+    (setq-default evil-undo-system nil)
+    :config
+    (evil-mode 1)
+    (define-key evil-normal-state-map (kbd "C-r") 'undo-redo))
+
+  (use-package evil-collection
+    :after evil
+    :ensure t
+    :config
+    (evil-collection-init))
+#+end_src
+
+* menu completion
+#+begin_src emacs-lisp
+    (use-package vertico
+      :ensure t
+      :bind (:map vertico-map
+                  ("C-j" . vertico-next)
+                  ("C-k" . vertico-previous))
+      :custom
+      (vertico-cycle t)
+      :init
+      (vertico-mode))
+
+  (use-package savehist
+    :init
+    (savehist-mode))
+#+end_src
+
+* revert garbage collection
+#+begin_src emacs-lisp
+  (setq-default gc-cons-threshold (* 2 1000 1000))
+#+end_src
