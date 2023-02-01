@@ -1,0 +1,10 @@
+* a minimal emacs config
+
+[[file:preview.png]]
+
+** deps
+- emacs v29 (native-comp)
+- cascadia code & cantarell font
+
+** goal
+have a /comfy/ config with +10+ 15 packages
