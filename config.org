@@ -1,5 +1,6 @@
 #+TITLE: minimal emacs
 #+AUTHOR: zen
+#+EMAIL: 71zenith@proton.me
 
 * optimisation
 #+begin_src elisp
@@ -75,15 +76,19 @@
 
 ** modeline
 #+begin_src elisp
-  (defun simple-mode-line-render (left right)
-    "Return a string of `window-width' length containing LEFT, and RIGHT
-   aligned respectively."
-    (let* ((available-width (- (window-width) (length left) 2)))
-      (format (format " %%s %%%ds " available-width) left right)))
+  (defun mode-line-render (left-text right-text)
+    (let* ((siding 10)
+           (available (- (- (window-pixel-width)
+                            (+ (string-pixel-width (format-mode-line left-text))
+                               (string-pixel-width (format-mode-line right-text))))
+                         (* 2 siding)))
+           (mid-pad (propertize "-" 'display `(space :width (,available))))
+           (side-pad (propertize "-" 'display `(space :width (,siding)))))
+      (list side-pad left-text mid-pad right-text side-pad)))
   (setq-default mode-line-format
-                '((:eval (simple-mode-line-render
-                  (format-mode-line "%I  %l:%c  %p")
-                  (format-mode-line "%b  (%m)  ")))))
+                '((:eval (mode-line-render
+                          `(" %I  %l:%c  %p")
+                          `((:eval (concat (propertize "%b  " 'face '(:slant italic)) "(%m) ")))))))
 #+end_src
 
 ** indentation
@@ -115,8 +120,8 @@
   (use-package evil
     :ensure t
     :init
-    (setq-default evil-want-keybinding nil)
-    (setq-default evil-undo-system nil)
+    (setq-default evil-want-keybinding nil
+                  evil-undo-system nil)
     :config
     (evil-mode 1)
     (define-key evil-normal-state-map (kbd "C-r") 'undo-redo))
@@ -137,12 +142,11 @@
       ("C-k" . vertico-previous))
     :custom
     (vertico-cycle t)
-      :init
-      (vertico-mode))
-
+    :init
+    (vertico-mode))
   (use-package savehist
-     :init
-     (savehist-mode))
+    :init
+    (savehist-mode))
 #+end_src
 
 * magit setup
@@ -159,9 +163,9 @@
     :bind (("C-x j" . dired-jump))
     :custom ((dired-listing-switches "-ahGl --time-style=+ -D"))
     :config
-      (evil-collection-define-key 'normal 'dired-mode-map
-        "h" 'dired-up-directory
-        "l" 'dired-find-file))
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "h" 'dired-up-directory
+      "l" 'dired-find-file))
 #+end_src
 
 * revert garbage collection
