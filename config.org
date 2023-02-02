@@ -133,27 +133,18 @@
     (evil-collection-init))
 #+end_src
 
-* menu completion
-#+begin_src elisp
-  (use-package vertico
-    :ensure t
-    :bind (:map vertico-map
-      ("C-j" . vertico-next)
-      ("C-k" . vertico-previous))
-    :custom
-    (vertico-cycle t)
-    :init
-    (vertico-mode))
-  (use-package savehist
-    :init
-    (savehist-mode))
-#+end_src
-
 * magit setup
 #+begin_src elisp
   (use-package magit
     :ensure t
     :bind ("M-p" . magit-status))
+#+end_src
+
+* menu completion
+#+begin_src elisp
+  (fido-vertical-mode 1)
+  (setq-default icomplete-compute-delay 0.02
+                icomplete-max-delay-chars 2)
 #+end_src
 
 * dired setup
