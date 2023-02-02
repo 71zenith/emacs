@@ -2,15 +2,20 @@
 
 [[file:preview.png]]
 
-** [[https://github.com/rayes0/emacs][inspiration]]
+** [[https://github.com/rayes0/emacs][inspiration]] (theme also yoinked)
 
 ** deps
 - emacs v29 (native-comp)
 - cascadia code & cantarell font
+- imagemagick
 
 ** goal
-have a /comfy/ config with +10+ <15 packages
+- have a /comfy/ config with +15+ <20 packages
+- use mostly emacs builtins
 
 ** won't be implemented
 - code specific
 - eye candy
+
+** note
+- im not familiar with lisp at all, most of the config is yoinked from all over the web, if smth is not implemented correctly, pls send a pr
