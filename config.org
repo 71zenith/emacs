@@ -4,6 +4,7 @@
 
 * optimisation
 #+begin_src elisp
+  ;; -*- lexical-binding: t; -*-
   (setq gc-cons-threshold (* 50 1000 1000))
 
   (setq-default native-comp-async-report-warnings-errors nil)
@@ -39,6 +40,7 @@
   (tooltip-mode -1)
   (fringe-mode 0)
   (menu-bar-mode -1)
+  (window-divider-mode 1)
 
   (setq-default use-dialog-box nil
                 visible-bell nil
@@ -47,7 +49,9 @@
                 use-file-dialog nil
                 make-backup-files nil
                 auto-save-default nil
-                warning-minimum-level :error)
+                warning-minimum-level :error
+                split-width-threshold nil
+                split-height-threshold 0)
 
   (defun display-startup-echo-area-message ()
     (message ""))
@@ -55,23 +59,16 @@
 
 ** font setup
 #+begin_src elisp
-  (set-face-attribute 'default nil :font "Cascadia Code" :height 150)
-  (set-face-attribute 'fixed-pitch nil :font "Cascadia Code" :height 150)
-  (set-face-attribute 'fixed-pitch-serif nil :font "Cascadia Mono" :height 150)
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 150 :weight 'regular)
+  (set-face-attribute 'default nil :font "Cascadia Code" :height 145)
+  (set-face-attribute 'fixed-pitch-serif nil :font "Cascadia Mono" :height 145)
 #+end_src
 
 ** theme setup
 #+begin_src elisp
-  (load-theme 'tango)
-  (set-face-attribute 'mode-line nil :box '(:line-width 6 :color "#ede6e3")
-                      :background "#ede6e3"
-                      :underline "grey")
-  (set-face-attribute 'mode-line-inactive nil :box '(:line-width 6 :color "#ede6e3")
-                      :background "#ede6e3")
+  (add-to-list 'load-path (expand-file-name "~/.emacs.d" user-emacs-directory))
   (set-frame-parameter (selected-frame) 'internal-border-width 20)
-  (set-background-color "#ede6e3")
   (set-face-attribute 'org-block nil :background "#f5dad8")
+  (require 'theme)
 #+end_src
 
 ** modeline
