@@ -41,6 +41,7 @@
   (fringe-mode 0)
   (menu-bar-mode -1)
   (window-divider-mode 1)
+  (savehist-mode 1)
 
   (setq-default use-dialog-box nil
                 visible-bell nil
@@ -139,11 +140,14 @@
 
 * menu completion
 #+begin_src elisp
-  (fido-vertical-mode 1)
-  (setq-default icomplete-compute-delay 0.02
-                icomplete-max-delay-chars 2)
+    (fido-vertical-mode 1)
+    (setq-default icomplete-compute-delay 0
+                  icomplete-max-delay-chars 0
+                  icomplete-delay-completions-threshold 0)
+    (use-package marginalia
+      :init (marginalia-mode))
 #+end_src
-
+         
 * dired setup
 #+begin_src elisp
   (use-package dired
