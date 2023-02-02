@@ -140,12 +140,12 @@
 
 * menu completion
 #+begin_src elisp
-    (fido-vertical-mode 1)
-    (setq-default icomplete-compute-delay 0
-                  icomplete-max-delay-chars 0
-                  icomplete-delay-completions-threshold 0)
-    (use-package marginalia
-      :init (marginalia-mode))
+  (fido-vertical-mode 1)
+  (setq-default icomplete-compute-delay 0
+                icomplete-max-delay-chars 0
+                icomplete-delay-completions-threshold 0)
+  (use-package marginalia
+    :init (marginalia-mode))
 #+end_src
          
 * dired setup
@@ -153,11 +153,26 @@
   (use-package dired
     :ensure nil
     :bind (("C-x j" . dired-jump))
-    :custom ((dired-listing-switches "-ahGl --time-style=+ -D"))
+    :custom ((dired-listing-switches "-ahGl --time-style=+ -D")
+             (dired-free-space 'separate))
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
       "h" 'dired-up-directory
       "l" 'dired-find-file))
+#+end_src
+
+* org mode
+#+begin_src elisp
+  (defun comfy-org ()
+    (org-indent-mode 1)
+    (setq evil-auto-indent nil))
+  (use-package org
+    :hook (org-mode . comfy-org))
+  (with-eval-after-load 'org
+    (require 'org-tempo)
+    (add-to-list 'org-structure-template-alist '("el" . "src elisp")))
+  (use-package org-bullets
+    :hook (org-mode .org-bullets-mode))
 #+end_src
 
 * revert garbage collection
