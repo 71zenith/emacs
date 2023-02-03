@@ -39,6 +39,7 @@
   (tool-bar-mode -1)
   (tooltip-mode -1)
   (fringe-mode 0)
+  (defalias 'yes-or-no-p 'y-or-n-p)
   (menu-bar-mode -1)
   (window-divider-mode 1)
   (savehist-mode 1)
@@ -111,7 +112,7 @@
     (dashboard-setup-startup-hook))
 #+end_src
 
-* vi mode
+* keyboard setup
 #+begin_src elisp
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
@@ -119,6 +120,8 @@
     :ensure t
     :init
     (setq-default evil-want-keybinding nil
+                  evil-want-C-u-scroll t
+                  evil-want-integration t
                   evil-undo-system nil)
     :config
     (evil-mode 1)
@@ -129,6 +132,12 @@
     :ensure t
     :config
     (evil-collection-init))
+
+  (use-package which-key
+    :defer 0
+    :config
+    (which-key-mode)
+    (setq-default which-key-idle-delay 0.01))
 #+end_src
 
 * magit setup
@@ -150,15 +159,16 @@
          
 * dired setup
 #+begin_src elisp
-  (use-package dired
-    :ensure nil
-    :bind (("C-x j" . dired-jump))
-    :custom ((dired-listing-switches "-ahGl --time-style=+ -D")
-             (dired-free-space 'separate))
-    :config
-    (evil-collection-define-key 'normal 'dired-mode-map
-      "h" 'dired-up-directory
-      "l" 'dired-find-file))
+    (use-package dired
+      :ensure nil
+      :bind (("C-x j" . dired-jump))
+      :hook (dired-mode . dired-hide-details-mode)
+      :custom ((dired-listing-switches "-ahGl --time-style=+ -D")
+  (dired-kill-when-opening-new-dired-buffer t))
+      :config
+      (evil-collection-define-key 'normal 'dired-mode-map
+        "h" 'dired-up-directory
+        "l" 'dired-find-file))
 #+end_src
 
 * org mode

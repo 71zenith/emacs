@@ -7,7 +7,15 @@
 ** deps
 - emacs v29 (native-comp)
 - cascadia code & cantarell font
-- imagemagick
+- imagemagick (not needed as of now)
+
+** features
+- dashboard (replaced by org??)
+- vi-mode (wanna know why?)
+- fido (its builtin ffs)
+- dired (^^^^)
+- org-mode (69% why i use emacs)
+- magit (dk)
 
 ** goal
 - have a /comfy/ config with +15+ <20 packages
