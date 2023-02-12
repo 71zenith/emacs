@@ -8,14 +8,13 @@
   (setq gc-cons-threshold (* 50 1000 1000))
 
   (setq-default native-comp-async-report-warnings-errors nil)
-  (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
+  ;; (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
 #+end_src
 
 * package setup
 #+begin_src elisp
   (require 'package)
-  (setq-default package-archives '(("melpa" . "https://melpa.org/packages/")
-                                   ("elpa" . "https://elpa.gnu.org/packages/")))
+  (setq-default package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")))
 
   (package-initialize)
   (unless package-archive-contents
@@ -35,7 +34,9 @@
 ** disable elements
 #+begin_src elisp
   (global-visual-line-mode)
+  (show-paren-mode)
   (scroll-bar-mode -1)
+  (electric-pair-mode)
   (tool-bar-mode -1)
   (tooltip-mode -1)
   (fringe-mode 0)
@@ -67,10 +68,11 @@
 
 ** theme setup
 #+begin_src elisp
-  (add-to-list 'load-path (expand-file-name "~/.emacs.d" user-emacs-directory))
+  ;; (add-to-list 'load-path (expand-file-name "~/.emacs.d" user-emacs-directory))
   (set-frame-parameter (selected-frame) 'internal-border-width 20)
-  (set-face-attribute 'org-block nil :background "#f5dad8")
-  (require 'theme)
+  ;; (set-face-attribute 'org-block nil :background "#f5dad8")
+  ;; (require 'theme)
+  (load-theme 'modus-vivendi-tinted t)
 #+end_src
 
 ** modeline
@@ -97,21 +99,6 @@
                 indent-tabs-mode nil)
 #+end_src
 
-* startup screen
-#+begin_src elisp
-  (use-package dashboard
-    :ensure t
-    :config
-    (setq-default dashboard-startup-banner "~/.emacs.d/avatar.gif"
-                  dashboard-item-names '(("Recent Files:" . "Recent:"))
-                  dashboard-center-content t
-                  dashboard-banner-logo-title "Is life real?"
-                  dashboard-items '((recents  . 10))
-                  dashboard-show-shortcuts nil
-                  dashboard-footer-messages '("Wait, who am i?"))
-    (dashboard-setup-startup-hook))
-#+end_src
-
 * keyboard setup
 #+begin_src elisp
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -132,12 +119,6 @@
     :ensure t
     :config
     (evil-collection-init))
-
-  (use-package which-key
-    :defer 0
-    :config
-    (which-key-mode)
-    (setq-default which-key-idle-delay 0.01))
 #+end_src
 
 * magit setup
@@ -154,6 +135,8 @@
                 icomplete-max-delay-chars 0
                 icomplete-delay-completions-threshold 0)
   (use-package marginalia
+    :bind (:map icomplete-fido-mode-map
+      ("TAB" . icomplete-force-complete))
     :init (marginalia-mode))
 #+end_src
          
@@ -181,8 +164,6 @@
   (with-eval-after-load 'org
     (require 'org-tempo)
     (add-to-list 'org-structure-template-alist '("el" . "src elisp")))
-  (use-package org-bullets
-    :hook (org-mode .org-bullets-mode))
 #+end_src
 
 * revert garbage collection
