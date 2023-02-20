@@ -54,6 +54,7 @@
       x-stretch-cursor t
       hscroll-margin 8
       scroll-margin 8)
+
 #+end_src
 
 * org mode setup
@@ -64,6 +65,7 @@
 #+begin_src emacs-lisp :tangle config.el
 (setq org-agenda-files (expand-file-name "agenda.org" org-directory)
       org-ellipsis " ▼ "
+      org-src-tab-acts-natively t
       org-superstar-headline-bullets-list '("◉" "●" "○" "◆" "●" "○" "◆"))
 
 (custom-set-faces
@@ -73,10 +75,9 @@
   '(org-level-4 ((t (:inherit outline-4 :height 1.0)))))
 
 (require 'org-auto-tangle)
+
 (add-hook 'org-mode-hook 'org-auto-tangle-mode)
 (add-hook 'org-mode-hook 'parinfer-rust-mode)
-
-(setq parinfer-rust-auto-download t)
 #+end_src
 
 * qol setup
