@@ -1,9 +1,7 @@
 #+TITLE: doom config
 #+AUTHOR: zen
 #+EMAIL: 71zenith@proton.me
-#+DESCRIPTION: my doom emacs setup
 #+auto_tangle: t
-
 
 * user setup
 #+begin_src emacs-lisp :tangle config.el
@@ -54,7 +52,6 @@
       x-stretch-cursor t
       hscroll-margin 8
       scroll-margin 8)
-
 #+end_src
 
 * org mode setup
@@ -114,8 +111,17 @@
         company-box-doc-enable nil
         company-tooltip-minimum-width 40))
 
+(setq company-global-modes
+      '(not org-mode))
+
 (after! vertico
   (setq vertico-count 10))
+
+(after! lsp-mode
+  (setq lsp-idle-delay 0.1
+        lsp-log-io nil
+        lsp-enable-symbol-highlighting t
+        lsp-headerline-breadcrumb-enable nil))
 #+end_src
 
 * elcord setup
@@ -151,7 +157,6 @@
        emoji
        hl-todo
        indent-guides
-       ligatures
        modeline
        (popup +defaults +all)
        (vc-gutter +pretty)
@@ -160,7 +165,7 @@
        :editor
        (evil +everywhere)
        fold
-       (format +save)
+       format
        parinfer
        snippets
        word-wrap
@@ -182,7 +187,7 @@
        :tools
        (eval +overlay)
        lookup
-       (lsp +elgot)
+       lsp
        magit
        tree-sitter
 
