@@ -11,20 +11,20 @@
 
 * font setup
 #+begin_src emacs-lisp :tangle config.el
-(setq doom-font (font-spec :family "IBM Plex Mono" :size 19)
-      doom-big-font (font-spec :family "IBM Plex Mono" :size 19)
-      doom-variable-pitch-font (font-spec :family "IBM Plex Sans" :size 19)
+(setq doom-font (font-spec :family "IBM Plex Mono" :size 18)
+      doom-big-font (font-spec :family "IBM Plex Mono" :size 18)
+      doom-variable-pitch-font (font-spec :family "IBM Plex Sans" :size 18)
       doom-unicode-font (font-spec :family "Joypixels")
-      doom-serif-font (font-spec :family "IBM Plex Sans" :size 19 :weight 'medium))
+      doom-serif-font (font-spec :family "IBM Plex Sans" :size 18 :weight 'medium))
 #+end_src
 
 * UI setup
 #+begin_src emacs-lisp :tangle config.el
-(setq doom-theme 'doom-horizon)
-(setq display-line-numbers-type nil)
+(setq doom-theme 'doom-horizon
+      display-line-numbers-type nil)
 
-(setq default-frame-alist '((internal-border-width . 10)))
-(setq initial-frame-alist default-frame-alist)
+(setq default-frame-alist '((internal-border-width . 10))
+      initial-frame-alist default-frame-alist)
 
 (setq fancy-splash-image (expand-file-name "waifu.jpg" doom-user-dir))
 (remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-footer)
@@ -50,14 +50,7 @@
 (setq global-auto-revert-non-file-buffers t
       x-stretch-cursor t
       hscroll-margin 8
-      scroll-conservatively 101
-      scroll-up-aggressively 0.01
-      scroll-down-aggressively 0.01
-      scroll-preserve-screen-position 'always
-      auto-window-vscroll nil
-      fast-but-imprecise-scrolling nil
       scroll-margin 8)
-
 #+end_src
 
 * org mode setup
@@ -77,13 +70,11 @@
 
 * QOL setup
 #+begin_src emacs-lisp :tangle config.el
-(setq confirm-kill-emacs nil)
-(setq default-input-method "japanese")
-(setq ispell-dictionary "en_US")
-(setq evil-ex-substitute-global t)
-(setq buffer-save-without-query t)
-(setq source-directory
-      (expand-file-name "~/dl/emacs/"))
+(setq confirm-kill-emacs nil
+      default-input-method "japanese"
+      evil-ex-substitute-global t
+      buffer-save-without-query t
+      source-directory (expand-file-name "~/dl/emacs/"))
 
 (evil-define-key 'normal dired-mode-map
   (kbd "h") 'dired-up-directory
@@ -96,8 +87,9 @@
   :after '(evil-window-split evil-window-vsplit)
   (consult-buffer))
 
-(setq vterm-kill-buffer-on-exit t
-      vterm-always-compile-module t)
+(after! vterm
+  (setq vterm-kill-buffer-on-exit t
+        vterm-always-compile-module t))
 
 (after! spell-fu
   (setq spell-fu-idle-delay 0.5))
@@ -115,15 +107,29 @@
         marginalia-align-offset -1))
 
 (after! company
-  (setq company-idle-delay 0.1
+  (setq company-idle-delay 0.2
         company-tooltip-limit 10
         company-format-margin-function nil
         company-tooltip-minimum-width 40))
 
-(after! eglot
-  (setq eglot-ignored-server-capabilities '(:documentHighlightProvider)))
+(after! rustic
+  (setq rustic-format-on-save t))
 
-  #+end_src
+(after! eglot
+  (setq eglot-ignored-server-capabilites '(:documentHighlightProvider)))
+
+(after! vertico
+  (setq vertico-count 12
+        vertico-scroll-margin 3)
+
+  (defun minibuffer-format-candidate (orig cand prefix suffix index _start)
+    (let ((prefix (if (= vertico--index index)
+                      " "
+                    " ")))
+      (funcall orig cand prefix suffix index _start)))
+  (advice-add #'vertico--format-candidate
+              :around #'minibuffer-format-candidate))
+#+end_src
 
 * discord setup
 #+begin_src emacs-lisp :tangle packages.el
@@ -133,7 +139,7 @@
 #+begin_src emacs-lisp :tangle config.el
 (require 'elcord)
 (setq elcord-quiet t
-      elcord-client-id "1076774019833016330"
+      elcord-client-id "1076774018833016330"
       elcord-idle-message "Can't think"
       elcord-idle-timer 180
       elcord-refresh-rate 10
@@ -147,7 +153,7 @@
 #+begin_src emacs-lisp :tangle init.el
 (doom! :completion
        company
-       (vertico +icons)
+       vertico
 
        :ui
        doom
@@ -162,7 +168,7 @@
        snippets
 
        :emacs
-       (dired +icons)
+       dired
        electric
        (undo +tree)
        vc
@@ -171,7 +177,7 @@
        vterm
 
        :checkers
-       syntax
+       (syntax +childframe)
        (spell +aspell)
 
        :tools
