@@ -57,6 +57,7 @@
       auto-window-vscroll nil
       fast-but-imprecise-scrolling nil
       scroll-margin 8)
+
 #+end_src
 
 * org mode setup
@@ -75,9 +76,10 @@
 #+end_src
 
 * QOL setup
-
 #+begin_src emacs-lisp :tangle config.el
 (setq confirm-kill-emacs nil)
+(setq default-input-method "japanese")
+(setq ispell-dictionary "en_US")
 (setq evil-ex-substitute-global t)
 (setq buffer-save-without-query t)
 (setq source-directory
@@ -97,6 +99,9 @@
 (setq vterm-kill-buffer-on-exit t
       vterm-always-compile-module t)
 
+(after! spell-fu
+  (setq spell-fu-idle-delay 0.5))
+
 (server-start)
 #+end_src
 
@@ -115,13 +120,10 @@
         company-format-margin-function nil
         company-tooltip-minimum-width 40))
 
-(setq eglot-ignored-server-capabilities '(:documentHighlightProvider))
+(after! eglot
+  (setq eglot-ignored-server-capabilities '(:documentHighlightProvider)))
 
-(setq flycheck-check-syntax-automatically '(mode-enabled save))
-
-(after! vertico
-  (setq vertico-count 10))
-#+end_src
+  #+end_src
 
 * discord setup
 #+begin_src emacs-lisp :tangle packages.el
@@ -150,8 +152,6 @@
        :ui
        doom
        doom-dashboard
-       emoji
-       hl-todo
        modeline
        (popup +defaults +all)
        (vc-gutter +diff-hl)
@@ -159,9 +159,7 @@
 
        :editor
        (evil +everywhere)
-       fold
        snippets
-       word-wrap
 
        :emacs
        (dired +icons)
@@ -173,11 +171,11 @@
        vterm
 
        :checkers
-       (syntax +childframe)
+       syntax
        (spell +aspell)
 
        :tools
-       (eval +overlay)
+       eval
        lookup
        (lsp +eglot)
        magit
