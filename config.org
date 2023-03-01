@@ -116,7 +116,10 @@
   (setq rustic-format-on-save t))
 
 (after! eglot
-  (setq eglot-ignored-server-capabilites '(:documentHighlightProvider)))
+  (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  (customize-set-variable 'eglot-ignored-server-capabilities
+                          (quote (:hoverProvider))))
+(setq flycheck-indication-mode nil)
 
 (after! vertico
   (setq vertico-count 12
