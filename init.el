@@ -71,6 +71,12 @@
   :bind (:map vertico-map
               ("C-j" . vertico-next)
               ("C-k" . vertico-previous))
+  :custom
+  (setq vertico-resize nil
+        vertico-history-delete-duplicates t
+        vertico-history-save-minibuffer-history 1
+        vertico-history-limit 5000
+        vertico-cycle t)
   :init
   (vertico-mode t))
 
@@ -89,12 +95,14 @@
 
 (use-package keycast
   :config
+  (setq keycast-mode-line-format "%2s%k%c%R")
+  (setq keycast-mode-line-insert-after 'mode-line-modes)
   (dolist (input '(self-insert-command org-self-insert-command))
     (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
 
   (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
     (add-to-list 'keycast-substitute-alist `(,event nil)))
-  :init (keycast-header-line-mode))
+  (keycast-mode-line-mode t))
 
 (use-package parinfer-rust-mode
   :config
@@ -180,7 +188,6 @@
 
 (use-package no-littering)
 (use-package helpful)
-(use-package better-defaults)
 
 (use-package seq)
 

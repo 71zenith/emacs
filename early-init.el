@@ -1,6 +1,7 @@
 (setq-default package-enable-at-startup nil
               use-dialog-box nil
               file-name-handler-alist nil
+              warning-minimum-level :error
               use-package-always-ensure t)
 
 (defun display-startup-echo-area-message ()
