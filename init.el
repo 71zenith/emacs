@@ -50,7 +50,6 @@
   :config
   (setq vertico-resize nil
         vertico-cycle t)
-  :init
   (vertico-mode t))
 
 (use-package pulsar
@@ -58,35 +57,32 @@
   (pulsar-global-mode 1))
 
 (use-package marginalia
-  :custom
-  (marginalia-annotators
-   '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  :init
+  :config
+  (setq marginalia-annotators
+	'(marginalia-annotators-heavy marginalia-annotators-light nil))
   (marginalia-mode t))
 
 (use-package corfu
-  :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  (corfu-preview-current 'insert)
-  (corfu-separator ?\s)
-  (corfu-quit-at-boundary nil)
-  (corfu-quit-no-match nil)
-  (corfu-preselect 'prompt)
-  (corfu-on-exact-match nil)
-  (corfu-scroll-margin 5)
-  (setq corfu-popupinfo-delay nil)
   :bind
   (:map corfu-map
         ("TAB"      . corfu-next)
         ([tab]      . corfu-next)
         ("S-TAB"    . corfu-previous)
         ([backtab]  . corfu-previous))
-
   :hook ((prog-mode   . corfu-mode)
          (shell-mode  . corfu-mode)
          (eshell-mode . corfu-mode))
-  :init
+  :config
+  (setq corfu-cycle t
+	corfu-auto t
+	corfu-preview-current 'insert
+	corfu-separator ?\s
+	corfu-quit-at-boundary nil
+	corfu-quit-no-match nil
+	corfu-preselect 'prompt
+	corfu-on-exact-match nil
+	corfu-scroll-margin 5
+	corfu-popupinfo-delay nil)
   (global-corfu-mode)
   (corfu-history-mode)
   (corfu-popupinfo-mode))
@@ -96,7 +92,7 @@
   :after vertico)
 
 (use-package orderless
-  :init
+  :config
   (setq completion-styles '(orderless basic)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
@@ -106,18 +102,16 @@
   (("M-." . embark-dwim)
    ("C-." . embark-act)
    ([remap describe-bindings] . embark-bindings))
-  :custom
-  (embark-indicators
-   '(embark-highlight-indicator
-     embark-isearch-highlight-indicator
-     embark-minimal-indicator))
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
-  (setq embark-prompter 'embark-completing-read-prompter))
+  :config
+  (setq embark-indicators
+	'(embark-highlight-indicator
+	  embark-isearch-highlight-indicator
+	  embark-minimal-indicator)
+	prefix-help-command #'embark-prefix-help-command
+	embark-prompter 'embark-completing-read-prompter))
 
 (use-package embark-consult
   :after (:all embark consult)
-  :demand t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
@@ -127,19 +121,17 @@
   :config
   (setq dired-listing-switches
 	"-AGFhlv --group-directories-first --time-style=long-iso"))
-
-(use-package async
-  :init
-  (dired-async-mode t))
-
-(use-package helpful)
-
 (use-package nerd-icons-dired
   :hook
   (dired-mode . nerd-icons-dired-mode))
 
-
 (use-package dired-single)
+
+(use-package async
+  :config
+  (dired-async-mode t))
+
+(use-package helpful)
 
 (use-package general
   :config
@@ -280,17 +272,16 @@
         org-catch-invisible-edits 'show-and-error
         org-special-ctrl-a/e t
         org-insert-heading-respect-content t
-
 	org-hide-emphasis-markers t
 	org-pretty-entities t
-	org-ellipsis "…"
-	:hook (org-mode . org-modern-mode))
+	org-ellipsis "…")
+  :hook (org-mode . org-modern-mode))
 
   (use-package eldoc)
 
   (use-package savehist
     :ensure nil
-    :init (savehist-mode t))
+    :config (savehist-mode t))
 
   (use-package cape
     :config
@@ -326,11 +317,6 @@
     :config (spacious-padding-mode))
 
   (use-package keycast)
-  ;; :config
-  ;;  (dolist (input '(self-insert-command org-self-insert-command))
-  ;;    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
-  ;;  (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
-  ;;    (add-to-list 'keycast-substitute-alist `(,event nil))))
 
   (use-package mini-echo
     :config
@@ -341,10 +327,10 @@
 		  :short ("buffer-name-short" "buffer-position" "process"
 			  "profiler" "selection-info" "narrow" "macro")))
     (mini-echo-define-segment "keycast"
-      "Display keycast info."
-      :update-hook '(post-command-hook)
-      :fetch (keycast--format keycast-mode-line-format)
-      :update (keycast--update))
+			      "Display keycast info."
+			      :update-hook '(post-command-hook)
+			      :fetch (keycast--format keycast-mode-line-format)
+			      :update (keycast--update))
     (mini-echo-mode))
 
   (use-package emacs
@@ -368,8 +354,9 @@
 	  default-input-method "japanese"
 	  enable-recursive-minibuffers t
 	  tab-width 2
-	  evil-shift-width tab-width)
-    (setq electric-pair-pairs
+	  evil-shift-width tab-width
+	  completion-in-region-function #'consult-completion-in-region
+	  electric-pair-pairs
 	  '(
 	    (?\" . ?\")
 	    (?\{ . ?\})))
@@ -382,7 +369,6 @@
     (recentf-mode t)
     (save-place-mode t)
     (indent-tabs-mode nil)
-    (setq completion-in-region-function #'consult-completion-in-region)
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
 		    (replace-regexp-in-string
