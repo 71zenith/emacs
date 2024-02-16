@@ -4,6 +4,7 @@
 
 The following is my emacs config concentrated into two files =early-init.el= and =init.el=.
 
+[[file:screenshot.png]]
 -----
 
 * early-init.el
@@ -31,8 +32,6 @@ The following is my emacs config concentrated into two files =early-init.el= and
                 (undecorated . t)
                 (vertical-scroll-bars . nil)
                 (horizontal-scroll-bars . nil)))
-
-(load-theme 'base16-stylix-theme t)
 #+end_src
 
 
@@ -44,9 +43,9 @@ The following is my emacs config concentrated into two files =early-init.el= and
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-			      :ref nil
-			      :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-			      :build (:not elpaca--activate-package)))
+                              :ref nil
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
@@ -56,18 +55,18 @@ The following is my emacs config concentrated into two files =early-init.el= and
     (make-directory repo t)
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-	(if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-		 ((zerop (call-process "git" nil buffer t "clone"
-				       (plist-get order :repo) repo)))
-		 ((zerop (call-process "git" nil buffer t "checkout"
-				       (or (plist-get order :ref) "--"))))
-		 (emacs (concat invocation-directory invocation-name))
-		 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-				       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-		 ((require 'elpaca))
-		 ((elpaca-generate-autoloads "elpaca" repo)))
-	    (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-	  (error "%s" (with-current-buffer buffer (buffer-string))))
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                 ((zerop (call-process "git" nil buffer t "clone"
+                                       (plist-get order :repo) repo)))
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                 ((require 'elpaca))
+                 ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
@@ -103,7 +102,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
 (use-package marginalia
   :config
   (setq marginalia-annotators
-	'(marginalia-annotators-heavy marginalia-annotators-light nil))
+        '(marginalia-annotators-heavy marginalia-annotators-light nil))
   (marginalia-mode t))
 #+end_src
 
@@ -160,7 +159,6 @@ The following is my emacs config concentrated into two files =early-init.el= and
 *** consult
 #+begin_src elisp :tangle "init.el"
 (use-package consult
-  :ensure t
   :after vertico)
 #+end_src
 
@@ -219,7 +217,7 @@ targets."
   :hook (dired-mode . dired-hide-details-mode)
   :config
   (setq dired-listing-switches
-	"-AGFhlv --group-directories-first --time-style=long-iso"))
+        "-AGFhlv --group-directories-first --time-style=long-iso"))
 
 (use-package nerd-icons-dired
   :hook
@@ -230,20 +228,20 @@ targets."
 (use-package async
   :config
   (dired-async-mode t))
+
 #+end_src
 
 ** evil
 #+begin_Src elisp :tangle "init.el"
 (use-package evil
-  :config
+  :init
   (setq evil-want-keybinding nil
         evil-want-C-u-scroll t
         evil-vsplit-window-right t
         evil-split-window-below t
-	    evil-undo-system 'undo-redo
+        evil-undo-system 'undo-redo
         evil-want-integration t)
-  :init
-  (evil-mode))
+  (evil-mode t))
 
 (use-package evil-collection
   :after evil
@@ -316,7 +314,7 @@ targets."
       map))
 
   (general-define-key
-   :states '(normal visual emacs)
+   :states '(normal insert visual emacs)
    :prefix "SPC"
    :global-prefix "M-SPC"
    "a" '(org-preferred-agenda :which-key "agenda")
@@ -367,9 +365,9 @@ targets."
         org-catch-invisible-edits 'show-and-error
         org-special-ctrl-a/e t
         org-insert-heading-respect-content t
-	org-hide-emphasis-markers t
-	org-pretty-entities t
-	org-ellipsis "…")
+        org-hide-emphasis-markers t
+        org-pretty-entities t
+        org-ellipsis "…")
   :hook ((org-mode . org-modern-mode)
          (org-mode . hl-line-mode)
          (org-mode . visual-line-mode)
@@ -379,7 +377,6 @@ targets."
 ** dashboard
 #+begin_src elisp :tangle "init.el"
 (use-package dashboard
-  :elpaca t
   :config
   (add-hook 'elpaca-after-init-hook #'dashboard-insert-startupify-lists)
   (add-hook 'elpaca-after-init-hook #'dashboard-initialize)
@@ -479,39 +476,39 @@ targets."
   :ensure nil
   :config
   (setq ring-bell-function #'ignore
-	completion-cycle-threshold 3
-	scroll-step 1
-	scroll-margin 3
-	scroll-conservatively 10000
-	make-backup-files nil
-	next-screen-context-lines 5
-	tab-always-indent 'complete
-	comment-multi-line nil
-	line-move-visual nil
-	initial-scratch-message nil
-	indicate-empty-lines t
-	confirm-kill-emacs nil
-	show-trailing-whitespace t
-	inhibit-startup-screen t
-	display-time-format "%H:%M"
-	display-time-default-load-average nil
-	default-input-method "japanese"
-	enable-recursive-minibuffers t
-	tab-width 2
-	evil-shift-width tab-width
-	completion-in-region-function #'consult-completion-in-region
-	electric-pair-pairs
-	'(
-	  (?\" . ?\")
-	  (?\{ . ?\})))
+        completion-cycle-threshold 3
+        scroll-step 1
+        scroll-margin 3
+        scroll-conservatively 10000
+        make-backup-files nil
+        next-screen-context-lines 5
+        tab-always-indent 'complete
+        comment-multi-line nil
+        line-move-visual nil
+        initial-scratch-message nil
+        indicate-empty-lines t
+        confirm-kill-emacs nil
+        show-trailing-whitespace t
+        inhibit-startup-screen t
+        display-time-format "%H:%M"
+        display-time-default-load-average nil
+        default-input-method "japanese"
+        enable-recursive-minibuffers t
+        tab-width 2
+        evil-shift-width tab-width
+        completion-in-region-function #'consult-completion-in-region
+        electric-pair-pairs
+        '(
+          (?\" . ?\")
+          (?\{ . ?\})))
   (fset 'yes-or-no-p 'y-or-n-p)
   (set-face-attribute 'default nil :height 180)
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
   (make-directory "~/.emacs.d/backup/" t)
   (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/backup/" t))
-	backup-directory-alist '(("." . "~/.emacs.d/backup/"))
-	create-lockfiles nil)
+        backup-directory-alist '(("." . "~/.emacs.d/backup/"))
+        create-lockfiles nil)
   (add-hook 'prog-mode #'hl-line-mode)
   (electric-pair-mode t)
   (recentf-mode t)
@@ -519,11 +516,11 @@ targets."
   (indent-tabs-mode nil)
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
-		  (replace-regexp-in-string
-		   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-		   crm-separator)
-		  (car args))
-	  (cdr args)))
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
   (defadvice split-window (after split-window-after activate)
