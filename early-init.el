@@ -21,3 +21,6 @@
                 (undecorated . t)
                 (vertical-scroll-bars . nil)
                 (horizontal-scroll-bars . nil)))
+
+
+(load-theme 'base16-stylix-theme t)

@@ -4,9 +4,9 @@
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
+			      :ref nil
+			      :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+			      :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
@@ -16,18 +16,18 @@
     (make-directory repo t)
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (call-process "git" nil buffer t "clone"
-                                       (plist-get order :repo) repo)))
-                 ((zerop (call-process "git" nil buffer t "checkout"
-                                       (or (plist-get order :ref) "--"))))
-                 (emacs (concat invocation-directory invocation-name))
-                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                 ((require 'elpaca))
-                 ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
+	(if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+		 ((zerop (call-process "git" nil buffer t "clone"
+				       (plist-get order :repo) repo)))
+		 ((zerop (call-process "git" nil buffer t "checkout"
+				       (or (plist-get order :ref) "--"))))
+		 (emacs (concat invocation-directory invocation-name))
+		 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+				       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+		 ((require 'elpaca))
+		 ((elpaca-generate-autoloads "elpaca" repo)))
+	    (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+	  (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
@@ -41,22 +41,44 @@
 
 (elpaca-wait)
 
-(use-package no-littering)
-
 (use-package vertico
   :bind (:map vertico-map
+              ("C-h" . left-char)
+              ("C-l" . right-char)
               ("C-j" . vertico-next)
               ("C-k" . vertico-previous))
-  :custom
+  :config
   (setq vertico-resize nil
         vertico-cycle t)
   :init
   (vertico-mode t))
 
+(use-package pulsar
+  :config
+  (setopt pulsar-pulse t
+          pulsar-delay 0.055
+          pulsar-iterations 10
+          pulsar-face 'pulsar-magenta
+          pulsar-highlight-face 'pulsar-cyan)
+  (pulsar-global-mode 1))
+
 (use-package popper
   :init
-  (setq popper-reference-buffers
-          '("\*.*\*"))
+  (setopt popper-reference-buffers
+          '("\\*Messages\\*"
+            "\\*Warnings\\*"
+            "\\*xref\\*"
+            "\\*Backtrace\\*"
+            "*Flymake diagnostics.*"
+            "\\*eldoc\\*"
+            "\\*compilation\\*"
+            "^*tex"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "\\*Dtache Shell Command\\*"
+            "\\*GDB.*out\\*"
+            help-mode
+            compilation-mode))
   (popper-mode t))
 
 (use-package marginalia
@@ -104,20 +126,7 @@
 
 (use-package consult
   :ensure t
-  :after vertico
-  :bind (("C-x b"       . consult-buffer)
-         ("C-x C-k C-k" . consult-kmacro)
-         ("M-y"         . consult-yank-pop)
-         ("M-g g"       . consult-goto-line)
-         ("M-g M-g"     . consult-goto-line)
-         ("M-g f"       . consult-flymake)
-         ("M-g i"       . consult-imenu)
-         ("M-s l"       . consult-line)
-         ("M-s L"       . consult-line-multi)
-         ("M-s u"       . consult-focus-lines)
-         ("M-s g"       . consult-ripgrep)
-         :map minibuffer-local-map
-         ("M-r" . consult-history)))
+  :after vertico)
 
 (use-package orderless
   :init
@@ -144,6 +153,15 @@
   :demand t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+(use-package dired
+  :ensure nil
+  :hook (dired-mode . dired-hide-details-mode)
+  :config
+  (setq dired-listing-switches
+	"-AGFhlv --group-directories-first --time-style=long-iso"))
+;; (evil-collection-define-key 'normal 'dired-mode-map
+;;   "h" 'dired-up-directory
+;;   "l" 'dired-find-file))
 
 (use-package async
   :defer t
@@ -156,24 +174,9 @@
   :hook
   (dired-mode . nerd-icons-dired-mode))
 
-(use-package dired
-  :ensure nil
-  :bind
-  (:map dired-mode-map
-        ("h" . dired-up-directory)
-        ("l" . dired-find-file)))
 
 (use-package dired-single)
 
-(use-package keycast
-  :config
-  (setq keycast-mode-line-format "%2s%k%c%R")
-  (setq keycast-mode-line-insert-after 'mode-line-modes)
-   (dolist (input '(self-insert-command org-self-insert-command))
-     (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
-   (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
-     (add-to-list 'keycast-substitute-alist `(,event nil)))
-  (keycast-mode-line-mode t))
 
 
 (use-package general
@@ -286,9 +289,6 @@
 (use-package projectile
   :init (projectile-mode t))
 
-(use-package flymake
-  :hook (prog-mode . flymake-mode))
-
 (use-package evil
   :init (setq evil-want-keybinding nil
               evil-want-C-u-scroll t
@@ -317,8 +317,39 @@
 
 (use-package diminish)
 
+(use-package org-modern
+  :config
+  (setq org-startup-indented t
+        org-edit-src-content-indentation 0
+        org-src-preserve-indentation t
+        org-confirm-babel-evaluate nil
+        org-auto-align-tags nil
+        org-tags-column 0
+        org-catch-invisible-edits 'show-and-error
+        org-special-ctrl-a/e t
+        org-insert-heading-respect-content t
+
+	org-hide-emphasis-markers t
+	org-pretty-entities t
+	org-ellipsis "…"
+
+	org-agenda-tags-column 0
+	org-agenda-block-separator ?─
+	org-agenda-time-grid
+	'((daily today require-timed)
+	  (800 1000 1200 1400 1600 1800 2000)
+	  " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+	org-agenda-current-time-string
+	"◀── now ─────────────────────────────────────────────────")
+  :hook (org-mode . org-modern-mode))
+
 (use-package eldoc
   :diminish eldoc-mode)
+
+(use-package savehist
+  :ensure nil
+  :init (savehist-mode t))
+
 
 (use-package cape
   :init
@@ -330,9 +361,10 @@
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   (add-to-list 'completion-at-point-functions #'cape-emoji))
 
+
 (use-package emacs
   :ensure nil
-  :init
+  :config
   (setq ring-bell-function #'ignore
         completion-cycle-threshold 3
         scroll-step 1
@@ -344,21 +376,25 @@
 	comment-multi-line nil
         line-move-visual nil
         initial-scratch-message nil
+	confirm-kill-emacs nil
         inhibit-startup-screen t
         default-input-method "japanese"
-        enable-recursive-minibuffers t)
+        enable-recursive-minibuffers t
+	tab-width 2
+        evil-shift-width tab-width)
   (setq electric-pair-pairs
         '(
           (?\" . ?\")
-          (?\{ . ?\})))
+	  (?\{ . ?\})))
   (fset 'yes-or-no-p 'y-or-n-p)
   (set-face-attribute 'default nil :height 200)
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
+  (global-hl-line-mode t)
   (electric-pair-mode t)
-  (savehist-mode t)
   (recentf-mode t)
   (save-place-mode t)
+  (indent-tabs-mode nil)
   (setq completion-in-region-function #'consult-completion-in-region)
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
@@ -375,3 +411,17 @@
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
+
+
+(use-package spacious-padding
+  :config (spacious-padding-mode))
+
+;; (use-package keycast
+;;   :config
+;;   (setq keycast-mode-line-format "%2s%k%c%R")
+;;   (setq keycast-mode-line-insert-after 'prot-modeline-misc-info)
+;;    (dolist (input '(self-insert-command org-self-insert-command))
+;;      (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
+;;    (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
+;;      (add-to-list 'keycast-substitute-alist `(,event nil)))
+;;   (keycast-mode-line-mode t))
