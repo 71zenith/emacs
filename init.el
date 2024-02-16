@@ -55,13 +55,7 @@
 
 (use-package pulsar
   :config
-  (setopt pulsar-pulse t
-          pulsar-delay 0.055
-          pulsar-iterations 10
-          pulsar-face 'pulsar-magenta
-          pulsar-highlight-face 'pulsar-cyan)
   (pulsar-global-mode 1))
-
 
 (use-package marginalia
   :custom
@@ -97,15 +91,6 @@
   (corfu-history-mode)
   (corfu-popupinfo-mode))
 
-(use-package kind-icon
-  :ensure t
-  :after corfu
-  :custom
-  (kind-icon-blend-background t)
-  (kind-icon-default-face 'corfu-default)
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-
 (use-package consult
   :ensure t
   :after vertico)
@@ -135,15 +120,13 @@
   :demand t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+
 (use-package dired
   :ensure nil
   :hook (dired-mode . dired-hide-details-mode)
   :config
   (setq dired-listing-switches
 	"-AGFhlv --group-directories-first --time-style=long-iso"))
-;; (evil-collection-define-key 'normal 'dired-mode-map
-;;   "h" 'dired-up-directory
-;;   "l" 'dired-find-file))
 
 (use-package async
   :init
@@ -157,8 +140,6 @@
 
 
 (use-package dired-single)
-
-
 
 (use-package general
   :config
@@ -186,14 +167,10 @@
       (define-key map (kbd "v") #'split-window-right)
       (define-key map (kbd "c") #'delete-window)
       (define-key map (kbd "w") #'evil-window-next)
-      map))
-
-  (defvar my-embark-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "RET") #'embark-find-defition)
-      (define-key map (kbd "k") #'split-window-right)
-      (define-key map (kbd "c") #'delete-window)
-      (define-key map (kbd "w") #'evil-window-next)
+      (define-key map (kbd "h") #'shrink-window-horizontally)
+      (define-key map (kbd "j") #'shrink-window)
+      (define-key map (kbd "k") #'enlarge-window)
+      (define-key map (kbd "l") #'enlarge-window-horizontally)
       map))
 
   (defvar my-org-map
@@ -226,16 +203,13 @@
    :global-prefix "SPC"
    "a" '(org-preferred-agenda :which-key "agenda")
    "b" `(,my-buffer-map :which-key "Buffer")
-   "B" '(magit-blame-addition :which-key "git blame")
    "c" '(org-capture :which-key "capture")
-   "C" '(magit-clone :which-key "magit clone")
    "d" '(dired-jump :which-key "dired jump")
    "e" '(embark-act :which-key "embark")
-   "E" '(eat :which-key "eat")
+   "e" '(eshell :which-key "eshell")
    "f" '(find-file :which-key "open file")
    "F" '(consult-find :which-key "consult find")
-   "g" '(magit :which-key "magit")
-   "G" '(consult-ripgrep :which-key "consult grep")
+   "g" '(consult-ripgrep :which-key "consult grep")
    "h" `(,my-help-map :which-key "Help")
    "i" '(insert-char :which-key "insert unicode")
    "I" '(toggle-input-method :which-key "change layout")
@@ -244,7 +218,7 @@
    "K" '(evil-indent-line :which-key "indent region")
    "l" '(slock :which-key "lock screen")
    "L" '(consult-git-log-grep :which-key "grep git log")
-   "m" '(hl-todo-next :which-key "next Todo")
+   "m" '(magit :which-key "magit")
    "n" '(elfeed :which-key "news (elfeed)")
    "p" '(projectile-find-file :which-key "hop project file")
    "P" '(projectile-switch-project :which-key "hop project")
@@ -268,21 +242,20 @@
 (use-package nix-mode)
 
 (use-package projectile
-  :init (projectile-mode t))
+  :config (projectile-mode t))
 
 (use-package evil
-  :init (setq evil-want-keybinding nil
-              evil-want-C-u-scroll t
-              evil-vsplit-window-right t
-              evil-split-window-below t
-              evil-want-integration t)
-  (evil-mode t)
-  :custom
-  (evil-undo-system 'undo-redo))
+  :config
+  (setq evil-want-keybinding nil
+        evil-want-C-u-scroll t
+        evil-vsplit-window-right t
+        evil-split-window-below t
+	evil-undo-system 'undo-redo
+        evil-want-integration t)
+  (evil-mode t))
 
 (use-package evil-collection
   :config (evil-collection-init)
-  :diminish evil-collection-unimpaired-mode
   :after evil)
 
 (use-package eat
@@ -291,12 +264,10 @@
 
 (use-package which-key
   :diminish which-key-mode
-  :custom
+  :config
   (setq which-key-idle-delay 1.5
         which-key-idle-secondary-delay 0.05)
-  :init (which-key-mode))
-
-(use-package diminish)
+  (which-key-mode))
 
 (use-package org-modern
   :config
@@ -313,129 +284,27 @@
 	org-hide-emphasis-markers t
 	org-pretty-entities t
 	org-ellipsis "…"
+	:hook (org-mode . org-modern-mode))
 
-	org-agenda-tags-column 0
-	org-agenda-block-separator ?─
-	org-agenda-time-grid
-	'((daily today require-timed)
-	  (800 1000 1200 1400 1600 1800 2000)
-	  " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-	org-agenda-current-time-string
-	"◀── now ─────────────────────────────────────────────────")
-  :hook (org-mode . org-modern-mode))
+  (use-package eldoc)
 
-(use-package eldoc
-  :diminish eldoc-mode)
+  (use-package savehist
+    :ensure nil
+    :init (savehist-mode t))
 
-(use-package savehist
-  :ensure nil
-  :init (savehist-mode t))
+  (use-package cape
+    :config
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+    (add-to-list 'completion-at-point-functions #'cape-file)
+    (add-to-list 'completion-at-point-functions #'cape-keyword)
+    (add-to-list 'completion-at-point-functions #'cape-elisp-block)
+    (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
+    (add-to-list 'completion-at-point-functions #'cape-keyword)
+    (add-to-list 'completion-at-point-functions #'cape-emoji))
 
-
-(use-package cape
-  :init
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-block)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-emoji))
-
-
-(use-package emacs
-  :ensure nil
-  :config
-  (setq ring-bell-function #'ignore
-        completion-cycle-threshold 3
-        scroll-step 1
-        scroll-margin 3
-        scroll-conservatively 10000
-        make-backup-files nil
-        next-screen-context-lines 5
-        tab-always-indent 'complete
-	comment-multi-line nil
-        line-move-visual nil
-        initial-scratch-message nil
-	confirm-kill-emacs nil
-        inhibit-startup-screen t
-	display-time-format "%H:%M"
-	display-time-default-load-average nil
-        default-input-method "japanese"
-        enable-recursive-minibuffers t
-	tab-width 2
-        evil-shift-width tab-width)
-  (setq electric-pair-pairs
-        '(
-          (?\" . ?\")
-	  (?\{ . ?\})))
-  (fset 'yes-or-no-p 'y-or-n-p)
-  (set-face-attribute 'default nil :height 200)
-  (prettify-symbols-mode t)
-  (global-auto-revert-mode t)
-  (global-hl-line-mode t)
-  (electric-pair-mode t)
-  (recentf-mode t)
-  (save-place-mode t)
-  (indent-tabs-mode nil)
-  (setq completion-in-region-function #'consult-completion-in-region)
-  (defun crm-indicator (args)
-    (cons (format "[CRM%s] %s"
-                  (replace-regexp-in-string
-                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                   crm-separator)
-                  (car args))
-          (cdr args)))
-  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
-
-  (defadvice split-window (after split-window-after activate)
-    (other-window 1))
-
-  (setq minibuffer-prompt-properties
-        '(read-only t cursor-intangible t face minibuffer-prompt))
-  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
-
-
-(use-package spacious-padding
-  :config (spacious-padding-mode))
-
-(use-package keycast)
-  ;; :config
-  ;; (setq keycast-header-line-format "%2s%k%c%R")
-  ;;  (dolist (input '(self-insert-command org-self-insert-command))
-  ;;    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
-  ;;  (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
-  ;;    (add-to-list 'keycast-substitute-alist `(,event nil))))
-
-(use-package mini-echo
-  :config
-  (setq mini-echo-default-segments
-	'(:long ("major-mode" "buffer-name" "vcs" "buffer-position"
-		 "flymake" "process" "selection-info"
-		 "narrow" "macro" "profiler" "time" "keycast")
-		:short ("buffer-name-short" "buffer-position" "process"
-			"profiler" "selection-info" "narrow" "macro")))
-  ;; set separator to concat information
-  (setq mini-echo-separator " ")
-
-  (setq mini-echo-right-padding 1)
-
-  (mini-echo-define-segment "keycast"
-    "Display keycast info."
-    :update-hook '(post-command-hook)
-    :fetch (keycast--format keycast-mode-line-format)
-    :update (keycast--update))
-
-  (mini-echo-define-segment "time"
-    "Return current time."
-    :setup
-    (display-time-mode 1)
-    :fetch (mini-echo-segment--extract display-time-string))
-  (mini-echo-mode))
-
-(use-package popper
-  :init
-  (setopt popper-reference-buffers
+  (use-package popper
+    :config
+    (setq popper-reference-buffers
           '("\\*Messages\\*"
             "\\*Warnings\\*"
             "\\*xref\\*"
@@ -451,4 +320,81 @@
             "\\*GDB.*out\\*"
             help-mode
             compilation-mode))
-  (popper-mode t))
+    (popper-mode t))
+
+  (use-package spacious-padding
+    :config (spacious-padding-mode))
+
+  (use-package keycast)
+  ;; :config
+  ;;  (dolist (input '(self-insert-command org-self-insert-command))
+  ;;    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
+  ;;  (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
+  ;;    (add-to-list 'keycast-substitute-alist `(,event nil))))
+
+  (use-package mini-echo
+    :config
+    (setq mini-echo-default-segments
+	  '(:long ("major-mode" "buffer-name" "vcs" "buffer-position"
+		   "flymake" "process" "selection-info"
+		   "narrow" "macro" "profiler" "keycast")
+		  :short ("buffer-name-short" "buffer-position" "process"
+			  "profiler" "selection-info" "narrow" "macro")))
+    (mini-echo-define-segment "keycast"
+      "Display keycast info."
+      :update-hook '(post-command-hook)
+      :fetch (keycast--format keycast-mode-line-format)
+      :update (keycast--update))
+    (mini-echo-mode))
+
+  (use-package emacs
+    :ensure nil
+    :config
+    (setq ring-bell-function #'ignore
+	  completion-cycle-threshold 3
+	  scroll-step 1
+	  scroll-margin 3
+	  scroll-conservatively 10000
+	  make-backup-files nil
+	  next-screen-context-lines 5
+	  tab-always-indent 'complete
+	  comment-multi-line nil
+	  line-move-visual nil
+	  initial-scratch-message nil
+	  confirm-kill-emacs nil
+	  inhibit-startup-screen t
+	  display-time-format "%H:%M"
+	  display-time-default-load-average nil
+	  default-input-method "japanese"
+	  enable-recursive-minibuffers t
+	  tab-width 2
+	  evil-shift-width tab-width)
+    (setq electric-pair-pairs
+	  '(
+	    (?\" . ?\")
+	    (?\{ . ?\})))
+    (fset 'yes-or-no-p 'y-or-n-p)
+    (set-face-attribute 'default nil :height 180)
+    (prettify-symbols-mode t)
+    (global-auto-revert-mode t)
+    (global-hl-line-mode t)
+    (electric-pair-mode t)
+    (recentf-mode t)
+    (save-place-mode t)
+    (indent-tabs-mode nil)
+    (setq completion-in-region-function #'consult-completion-in-region)
+    (defun crm-indicator (args)
+      (cons (format "[CRM%s] %s"
+		    (replace-regexp-in-string
+		     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+		     crm-separator)
+		    (car args))
+	    (cdr args)))
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+    (defadvice split-window (after split-window-after activate)
+      (other-window 1))
+
+    (setq minibuffer-prompt-properties
+          '(read-only t cursor-intangible t face minibuffer-prompt))
+    (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
