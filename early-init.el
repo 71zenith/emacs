@@ -23,4 +23,4 @@
                 (horizontal-scroll-bars . nil)))
 
 
-(load-theme 'base16-stylix-theme t)
+;; (load-theme 'base16-stylix-theme t)

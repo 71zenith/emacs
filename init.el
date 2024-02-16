@@ -62,24 +62,6 @@
           pulsar-highlight-face 'pulsar-cyan)
   (pulsar-global-mode 1))
 
-(use-package popper
-  :init
-  (setopt popper-reference-buffers
-          '("\\*Messages\\*"
-            "\\*Warnings\\*"
-            "\\*xref\\*"
-            "\\*Backtrace\\*"
-            "*Flymake diagnostics.*"
-            "\\*eldoc\\*"
-            "\\*compilation\\*"
-            "^*tex"
-            "Output\\*$"
-            "\\*Async Shell Command\\*"
-            "\\*Dtache Shell Command\\*"
-            "\\*GDB.*out\\*"
-            help-mode
-            compilation-mode))
-  (popper-mode t))
 
 (use-package marginalia
   :custom
@@ -164,7 +146,6 @@
 ;;   "l" 'dired-find-file))
 
 (use-package async
-  :defer t
   :init
   (dired-async-mode t))
 
@@ -378,6 +359,8 @@
         initial-scratch-message nil
 	confirm-kill-emacs nil
         inhibit-startup-screen t
+	display-time-format "%H:%M"
+	display-time-default-load-average nil
         default-input-method "japanese"
         enable-recursive-minibuffers t
 	tab-width 2
@@ -416,12 +399,56 @@
 (use-package spacious-padding
   :config (spacious-padding-mode))
 
-;; (use-package keycast
-;;   :config
-;;   (setq keycast-mode-line-format "%2s%k%c%R")
-;;   (setq keycast-mode-line-insert-after 'prot-modeline-misc-info)
-;;    (dolist (input '(self-insert-command org-self-insert-command))
-;;      (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
-;;    (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
-;;      (add-to-list 'keycast-substitute-alist `(,event nil)))
-;;   (keycast-mode-line-mode t))
+(use-package keycast)
+  ;; :config
+  ;; (setq keycast-header-line-format "%2s%k%c%R")
+  ;;  (dolist (input '(self-insert-command org-self-insert-command))
+  ;;    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
+  ;;  (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
+  ;;    (add-to-list 'keycast-substitute-alist `(,event nil))))
+
+(use-package mini-echo
+  :config
+  (setq mini-echo-default-segments
+	'(:long ("major-mode" "buffer-name" "vcs" "buffer-position"
+		 "flymake" "process" "selection-info"
+		 "narrow" "macro" "profiler" "time" "keycast")
+		:short ("buffer-name-short" "buffer-position" "process"
+			"profiler" "selection-info" "narrow" "macro")))
+  ;; set separator to concat information
+  (setq mini-echo-separator " ")
+
+  (setq mini-echo-right-padding 1)
+
+  (mini-echo-define-segment "keycast"
+    "Display keycast info."
+    :update-hook '(post-command-hook)
+    :fetch (keycast--format keycast-mode-line-format)
+    :update (keycast--update))
+
+  (mini-echo-define-segment "time"
+    "Return current time."
+    :setup
+    (display-time-mode 1)
+    :fetch (mini-echo-segment--extract display-time-string))
+  (mini-echo-mode))
+
+(use-package popper
+  :init
+  (setopt popper-reference-buffers
+          '("\\*Messages\\*"
+            "\\*Warnings\\*"
+            "\\*xref\\*"
+            "\\*Backtrace\\*"
+            "*Flymake diagnostics.*"
+            "*helpful.*"
+            "\\*eldoc\\*"
+            "\\*compilation\\*"
+            "^*tex"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "\\*Dtache Shell Command\\*"
+            "\\*GDB.*out\\*"
+            help-mode
+            compilation-mode))
+  (popper-mode t))
