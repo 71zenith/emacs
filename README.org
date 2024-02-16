@@ -168,12 +168,43 @@ The following is my emacs config concentrated into two files =early-init.el= and
 #+begin_src elisp :tangle "init.el"
 (use-package embark
   :config
+  (defun embark-which-key-indicator ()
+    "An embark indicator that displays keymaps using which-key.
+The which-key help message will show the type and value of the
+current target followed by an ellipsis if there are further
+targets."
+    (lambda (&optional keymap targets prefix)
+      (if (null keymap)
+          (which-key--hide-popup-ignore-command)
+        (which-key--show-keymap
+         (if (eq (plist-get (car targets) :type) 'embark-become)
+             "Become"
+           (format "Act on %s '%s'%s"
+                   (plist-get (car targets) :type)
+                   (embark--truncate-target (plist-get (car targets) :target))
+                   (if (cdr targets) "…" "")))
+         (if prefix
+             (pcase (lookup-key keymap prefix 'accept-default)
+               ((and (pred keymapp) km) km)
+               (_ (key-binding prefix 'accept-default)))
+           keymap)
+         nil nil t (lambda (binding)
+                     (not (string-suffix-p "-argument" (cdr binding))))))))
+
   (setq embark-indicators
-        '(embark-highlight-indicator
-          embark-isearch-highlight-indicator
-          embark-minimal-indicator)
-        prefix-help-command #'embark-prefix-help-command
-        embark-prompter 'embark-completing-read-prompter))
+	'(embark-which-key-indicator
+	  embark-highlight-indicator
+	  embark-isearch-highlight-indicator))
+
+  (defun embark-hide-which-key-indicator (fn &rest args)
+    "Hide the which-key indicator immediately when using the completing-read prompter."
+    (which-key--hide-popup-ignore-command)
+    (let ((embark-indicators
+           (remq #'embark-which-key-indicator embark-indicators)))
+      (apply fn args)))
+
+  (advice-add #'embark-completing-read-prompter
+              :around #'embark-hide-which-key-indicator))
 
 (use-package embark-consult
   :after (:all embark consult)
@@ -209,13 +240,24 @@ The following is my emacs config concentrated into two files =early-init.el= and
         evil-want-C-u-scroll t
         evil-vsplit-window-right t
         evil-split-window-below t
-	evil-undo-system 'undo-redo
+	    evil-undo-system 'undo-redo
         evil-want-integration t)
   (evil-mode t))
 
 (use-package evil-collection
-  :config (evil-collection-init)
-  :after evil)
+  :after evil
+  :config (evil-collection-init))
+
+(use-package evil-goggles
+  :after evil
+  :config
+  (setq evil-goggles-duration 0.05)
+  (evil-goggles-mode))
+
+(use-package evil-commentary
+  :after evil
+  :config
+  (evil-commentary-mode))
 #+end_src
 
 ** general
@@ -275,7 +317,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
   (general-define-key
    :states '(normal visual emacs)
    :prefix "SPC"
-   :global-prefix "SPC"
+   :global-prefix "M-SPC"
    "a" '(org-preferred-agenda :which-key "agenda")
    "b" `(,my-buffer-map :which-key "Buffer")
    "c" '(org-capture :which-key "capture")
@@ -289,7 +331,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
    "i" '(insert-char :which-key "insert unicode")
    "I" '(toggle-input-method :which-key "change layout")
    "j" '(consult-imenu :which-key "jump via imenu")
-   "k" '(comment-or-uncomment-region :which-key "comment region")
+   "k" '(evil-commentary :which-key "comment region")
    "l" '(consult-git-log-grep :which-key "grep git log")
    "m" '(magit :which-key "magit")
    "n" '(elfeed :which-key "news (elfeed)")
@@ -298,6 +340,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
    "P" '(projectile-switch-project :which-key "hop project")
    "Q" '(save-buffers-kill-emacs :which-key "quit emacs")
    "r" '(consult-recent-file :which-key "open recent")
+   "s" '(save-buffer :which-key "save buffer")
    "u" '(consult-theme :which-key "change theme")
    "v" '(consult-yank-pop :which-key "clipboard")
    "V" '(eval-region :which-key "eval region")
@@ -324,9 +367,29 @@ The following is my emacs config concentrated into two files =early-init.el= and
         org-special-ctrl-a/e t
         org-insert-heading-respect-content t
 	org-hide-emphasis-markers t
-	org-pretty-entities nil
+	org-pretty-entities t
 	org-ellipsis "…")
-  :hook (org-mode . org-modern-mode))
+  :hook ((org-mode . org-modern-mode)
+         (org-mode . hl-line-mode)
+         (org-mode . visual-line-mode)
+         (org-mode . org-indent-mode)))
+#+end_src
+
+** dashboard
+#+begin_src elisp :tangle "init.el"
+(use-package dashboard
+  :elpaca t
+  :config
+  (add-hook 'elpaca-after-init-hook #'dashboard-insert-startupify-lists)
+  (add-hook 'elpaca-after-init-hook #'dashboard-initialize)
+  (setq dashboard-center-content t
+        dashboard-banner-logo-title "Present Day.. Present Time! HAHAHA!"
+        dashboard-set-footer nil
+        dashboard-startup-banner (concat user-emacs-directory "lain.png")
+        dashboard-items '((recents  . 5)
+                          (bookmarks . 5)
+                          (projects . 5)))
+  (dashboard-setup-startup-hook))
 #+end_src
 
 ** quality of life
@@ -396,6 +459,8 @@ The following is my emacs config concentrated into two files =early-init.el= and
 
 (use-package magit)
 
+(use-package helpful)
+
 (use-package nix-mode)
 
 (use-package projectile
@@ -433,7 +498,6 @@ The following is my emacs config concentrated into two files =early-init.el= and
 	display-time-default-load-average nil
 	default-input-method "japanese"
 	enable-recursive-minibuffers t
-
 	tab-width 2
 	evil-shift-width tab-width
 	completion-in-region-function #'consult-completion-in-region
@@ -449,7 +513,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
   (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/backup/" t))
 	backup-directory-alist '(("." . "~/.emacs.d/backup/"))
 	create-lockfiles nil)
-  (global-hl-line-mode t)
+  (add-hook 'prog-mode #'hl-line-mode)
   (electric-pair-mode t)
   (recentf-mode t)
   (save-place-mode t)
