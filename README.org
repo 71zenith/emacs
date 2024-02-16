@@ -242,7 +242,8 @@ targets."
         evil-split-window-below t
 	    evil-undo-system 'undo-redo
         evil-want-integration t)
-  (evil-mode t))
+  :init
+  (evil-mode))
 
 (use-package evil-collection
   :after evil
@@ -393,6 +394,27 @@ targets."
 #+end_src
 
 ** quality of life
+*** looks
+#+begin_src elisp :tangle "init.el"
+(use-package spacious-padding
+  :config (spacious-padding-mode))
+
+;; (use-package keycast
+;;   :config
+;;   (setq keycast-mode-line-insert-after 'mood-line-segment-misc-info)
+;;   (dolist (input '(self-insert-command org-self-insert-command))
+;;     (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
+
+;;   (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
+;;     (add-to-list 'keycast-substitute-alist `(,event nil)))
+;;   (keycast-mode-line-mode))
+
+(use-package mood-line
+  :config
+  (setq mood-line-glyph-alist mood-line-glyphs-unicode)
+  (mood-line-mode))
+#+end_src
+
 *** popper
 #+begin_src elisp :tangle "init.el"
 (use-package popper
@@ -414,29 +436,6 @@ targets."
           help-mode
           compilation-mode))
   (popper-mode t))
-#+end_src
-
-*** looks
-#+begin_src elisp :tangle "init.el"
-(use-package spacious-padding
-  :config (spacious-padding-mode))
-
-(use-package keycast)
-
-(use-package mini-echo
-  :config
-  (setq mini-echo-default-segments
-	'(:long ("major-mode" "buffer-name" "vcs" "buffer-position"
-		 "flymake" "process" "selection-info"
-		 "narrow" "macro" "profiler" "keycast")
-		:short ("buffer-name-short" "buffer-position" "process"
-			"profiler" "selection-info" "narrow" "macro")))
-  (mini-echo-define-segment "keycast"
-    "Display keycast info."
-    :update-hook '(post-command-hook)
-    :fetch (keycast--format keycast-mode-line-format)
-    :update (keycast--update))
-  (mini-echo-mode))
 #+end_src
 
 *** random
