@@ -220,26 +220,6 @@ targets."
   (persp-mode t))
 #+end_src
 
-** dired
-#+begin_src elisp :tangle "init.el"
-  (use-package dired
-    :ensure nil
-    :hook (dired-mode . dired-hide-details-mode)
-    :config
-    (setq dired-listing-switches
-	  "-AGFhlv --group-directories-first --time-style=long-iso"))
-
-  (use-package nerd-icons-dired
-    :hook
-    (dired-mode . nerd-icons-dired-mode))
-
-  (use-package dired-single)
-
-  (use-package async
-    :config
-    (dired-async-mode t))
-
-#+end_src
 
 ** evil
 #+begin_Src elisp :tangle "init.el"
@@ -267,6 +247,27 @@ targets."
   :after evil
   :config
   (evil-commentary-mode))
+#+end_src
+
+** dired
+#+begin_src elisp :tangle "init.el"
+(use-package dired
+  :after evil-collection
+  :ensure nil
+  :hook (dired-mode . dired-hide-details-mode)
+  :config
+  (setq dired-listing-switches
+        "-AGFhlv --group-directories-first --time-style=long-iso"))
+
+(use-package nerd-icons-dired
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
+(use-package dired-single)
+
+(use-package async
+  :config
+  (dired-async-mode t))
 #+end_src
 
 ** general
@@ -418,6 +419,13 @@ targets."
 (use-package tempel-collection)
 #+end_Src
 
+*** eglot
+#+begin_src elisp :tangle "init.el"
+(use-package eglot
+  :ensure nil
+  :hook (nix-mode . eglot-ensure))
+#+end_src
+
 ** quality of life
 *** looks
 #+begin_src elisp :tangle "init.el"
@@ -442,7 +450,7 @@ targets."
 
   (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
     (add-to-list 'keycast-substitute-alist `(,event nil)))
-  :init (keycast-header-line-mode))
+  (keycast-header-line-mode))
 #+end_src
 
 *** popper
