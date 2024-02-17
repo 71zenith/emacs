@@ -289,30 +289,6 @@ targets."
       (define-key map (kbd "w") #'evil-window-next)
       map))
 
-  (defvar my-org-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "SPC") #'tempo-complete-tag)
-      (define-key map (kbd "b") #'org-insert-structure-template)
-      (define-key map (kbd "c") #'org-cite-insert)
-      (define-key map (kbd "e") #'org-babel-execute-src-block)
-      (define-key map (kbd "h") #'org-html-export-to-html)
-      (define-key map (kbd "i") #'org-indent-mode)
-      (define-key map (kbd "j") #'consult-org-heading)
-      (define-key map (kbd "k") #'org-clock-in)
-      (define-key map (kbd "K") #'org-clock-out)
-      (define-key map (kbd "n") #'org-narrow-to-subtree)
-      (define-key map (kbd "m") #'tempo-forward-mark)
-      (define-key map (kbd "M") #'tempo-backward-mark)
-      (define-key map (kbd "N") #'widen)
-      (define-key map (kbd "p") #'org-latex-export-to-pdf)
-      (define-key map (kbd "P") #'org-beamer-export-to-pdf)
-      (define-key map (kbd "s") #'org-cut-subtree)
-      (define-key map (kbd "t") #'org-time-stamp)
-      (define-key map (kbd "v") #'visual-line-mode)
-      (define-key map (kbd "x") #'org-export-dispatch)
-      (define-key map (kbd "X") #'toggle-org-pdf-export-on-save)
-      map))
-
   (general-define-key
    :states '(normal insert visual emacs)
    :prefix "SPC"
@@ -333,7 +309,7 @@ targets."
    "k" '(evil-commentary :which-key "comment region")
    "l" '(consult-git-log-grep :which-key "grep git log")
    "m" '(magit :which-key "magit")
-   "n" '(elfeed :which-key "news (elfeed)")
+   "n" '(format-all-region-or-buffer :which-key "format")
    "o" '(evil-indent-line :which-key "indent region")
    "p" '(projectile-find-file :which-key "hop project file")
    "P" '(projectile-switch-project :which-key "hop project")
@@ -347,7 +323,7 @@ targets."
    "x" '(consult-flymake :which-key "flymake")
    "SPC" '(execute-extended-command :which-key "M-x")
    ":" '(eval-expression :which-key "M-:")
-   "/" `(consult-line :which-key "search")
+   "/" '(consult-line :which-key "search")
    "<return>" '(consult-bookmark :which-key "jump to bookmark")
    "s-<return>" '(bookmark-set :which-key "set a bookmark")))
 #+end_src
@@ -390,26 +366,31 @@ targets."
   (dashboard-setup-startup-hook))
 #+end_src
 
+** code
+*** formatting
+#+begin_src elisp :tangle "init.el"
+(use-package format-all
+  :hook (prog-mode . format-all-mode)
+  :config
+  (setq-default format-all-formatters
+                '(("Nix" (nixfmt))
+                  ("Shell" (shfmt "-i" "4" "-ci")))))
+#+end_src
+
 ** quality of life
 *** looks
 #+begin_src elisp :tangle "init.el"
 (use-package spacious-padding
   :config (spacious-padding-mode))
 
-;; (use-package keycast
-;;   :config
-;;   (setq keycast-mode-line-insert-after 'mood-line-segment-misc-info)
-;;   (dolist (input '(self-insert-command org-self-insert-command))
-;;     (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
-
-;;   (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
-;;     (add-to-list 'keycast-substitute-alist `(,event nil)))
-;;   (keycast-mode-line-mode))
-
-(use-package mood-line
+(use-package doom-modeline
   :config
-  (setq mood-line-glyph-alist mood-line-glyphs-unicode)
-  (mood-line-mode))
+  (setq doom-modeline-icon nil
+        doom-modeline-unicode-fallback nil
+        doom-modeline-height 38
+        doom-modeline-hud nil
+        doom-modeline-buffer-encoding nil)
+  (doom-modeline-mode))
 #+end_src
 
 *** popper
@@ -512,6 +493,7 @@ targets."
   (add-hook 'prog-mode #'hl-line-mode)
   (electric-pair-mode t)
   (recentf-mode t)
+  (window-divider-mode nil)
   (save-place-mode t)
   (indent-tabs-mode nil)
   (defun crm-indicator (args)
