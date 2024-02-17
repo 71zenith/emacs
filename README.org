@@ -206,11 +206,18 @@ targets."
 
   (advice-add #'embark-completing-read-prompter
               :around #'embark-hide-which-key-indicator))
-
 (use-package embark-consult
   :after (:all embark consult)
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+
+** perspective
+#+begin_src elisp :tangle "init.el"
+(use-package perspective
+  :config
+  (setq persp-state-default-file "~/.emacs.d/perspective")
+  (persp-mode t))
 #+end_src
 
 ** dired
@@ -286,6 +293,18 @@ targets."
 	(define-key map (kbd "s") #'scratch-buffer)
 	map))
 
+    (defvar my-persp-map
+      (let ((map (make-sparse-keymap)))
+	(define-key map (kbd "c") #'persp-kill)
+	(define-key map (kbd "a") #'persp-add-buffer)
+	(define-key map (kbd "A") #'persp-set-buffer)
+	(define-key map (kbd "s") #'persp-switch)
+	(define-key map (kbd "b") #'persp-switch-to-buffer*)
+	(define-key map (kbd "k") #'persp-remove-buffer)
+	(define-key map (kbd "h") #'persp-prev)
+	(define-key map (kbd "l") #'persp-next)
+	map))
+
     (defvar my-window-map
       (let ((map (make-sparse-keymap)))
 	(define-key map (kbd "s") #'split-window-below)
@@ -312,6 +331,8 @@ targets."
      "I" '(toggle-input-method :which-key "layout")
      "j" '(consult-imenu :which-key "imenu")
      "k" '(evil-commentary :which-key "comment")
+     "l" `(,my-persp-map :which-key "PERSP")
+     "L" '(persp-state-load :which-key "persp load")
      "m" '(magit :which-key "magit")
      "n" '(format-all-region-or-buffer :which-key "format")
      "o" '(evil-indent-line :which-key "indent")
@@ -320,6 +341,7 @@ targets."
      "Q" '(save-buffers-kill-emacs :which-key "quit")
      "r" '(consult-recent-file :which-key "recent")
      "s" '(save-buffer :which-key "save")
+     "S" '(persp-state-save :which-key "persp save")
      "u" '(consult-theme :which-key "theme")
      "v" '(consult-yank-pop :which-key "clipboard")
      "V" '(elisp-eval-region-or-buffer :which-key "eval elisp")
@@ -410,6 +432,17 @@ targets."
         doom-modeline-hud nil
         doom-modeline-buffer-encoding nil)
   (doom-modeline-mode))
+
+(use-package keycast
+  :config
+  (setq keycast-mode-line-format "%2s%k%c%R")
+  (setq keycast-mode-line-insert-after 'mode-line-modes)
+  (dolist (input '(self-insert-command org-self-insert-command))
+    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
+
+  (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
+    (add-to-list 'keycast-substitute-alist `(,event nil)))
+  :init (keycast-header-line-mode))
 #+end_src
 
 *** popper
