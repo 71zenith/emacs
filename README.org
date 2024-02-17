@@ -159,6 +159,9 @@ The following is my emacs config concentrated into two files =early-init.el= and
 *** consult
 #+begin_src elisp :tangle "init.el"
 (use-package consult
+  :config
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
   :after vertico)
 #+end_src
 
@@ -215,11 +218,6 @@ targets."
   (use-package dired
     :ensure nil
     :hook (dired-mode . dired-hide-details-mode)
-    :general
-    (:states 'normal
-	     :keymaps 'dired-mode-map
-	     "h" 'dired-up-directory
-	     "l" 'dired-find-file)
     :config
     (setq dired-listing-switches
 	  "-AGFhlv --group-directories-first --time-style=long-iso"))
@@ -272,7 +270,8 @@ targets."
       (let ((map (make-sparse-keymap)))
 	(define-key map (kbd "h") #'helpful-symbol)
 	(define-key map (kbd "o") #'describe-symbol)
-	(define-key map (kbd "k") #'helpful-key)
+	(define-key map (kbd "k") #'describe-keymap)
+	(define-key map (kbd "K") #'helpful-key)
 	(define-key map (kbd "m") #'describe-mode)
 	(define-key map (kbd "M") #'man)
 	(define-key map (kbd "p") #'helpful-at-point)
@@ -299,39 +298,38 @@ targets."
      :states '(normal insert visual emacs)
      :prefix "SPC"
      :global-prefix "M-SPC"
-     "a" '(tempel-complete :which-key "snippet")
+     "a" `(tempel-complete :which-key "snippet")
      "b" `(,my-buffer-map :which-key "BUFFER")
      "c" '(org-capture :which-key "capture")
      "d" '(dired-jump :which-key "dired jump")
      "e" '(embark-act :which-key "embark")
      "E" '(eshell :which-key "eshell")
      "f" '(find-file :which-key "open file")
-     "F" '(consult-find :which-key "consult find")
-     "g" '(consult-ripgrep :which-key "consult grep")
+     "F" '(consult-find :which-key "find")
+     "g" '(consult-ripgrep :which-key "grep")
      "h" `(,my-help-map :which-key "HELP")
-     "i" '(insert-char :which-key "insert unicode")
-     "I" '(toggle-input-method :which-key "change layout")
-     "j" '(consult-imenu :which-key "jump via imenu")
-     "k" '(evil-commentary :which-key "comment region")
-     "l" '(consult-git-log-grep :which-key "grep git log")
+     "i" '(insert-char :which-key "unicode")
+     "I" '(toggle-input-method :which-key "layout")
+     "j" '(consult-imenu :which-key "imenu")
+     "k" '(evil-commentary :which-key "comment")
      "m" '(magit :which-key "magit")
      "n" '(format-all-region-or-buffer :which-key "format")
-     "o" '(evil-indent-line :which-key "indent region")
-     "p" '(projectile-find-file :which-key "hop project file")
-     "P" '(projectile-switch-project :which-key "hop project")
-     "Q" '(save-buffers-kill-emacs :which-key "quit emacs")
-     "r" '(consult-recent-file :which-key "open recent")
-     "s" '(save-buffer :which-key "save buffer")
-     "u" '(consult-theme :which-key "change theme")
+     "o" '(evil-indent-line :which-key "indent")
+     "p" '(projectile-find-file :which-key "proj find")
+     "P" '(projectile-switch-project :which-key "project")
+     "Q" '(save-buffers-kill-emacs :which-key "quit")
+     "r" '(consult-recent-file :which-key "recent")
+     "s" '(save-buffer :which-key "save")
+     "u" '(consult-theme :which-key "theme")
      "v" '(consult-yank-pop :which-key "clipboard")
-     "V" '(eval-region :which-key "eval region")
+     "V" '(elisp-eval-region-or-buffer :which-key "eval elisp")
      "w" `(,my-window-map :which-key "WINDOW")
      "x" '(consult-flymake :which-key "flymake")
      "SPC" '(execute-extended-command :which-key "M-x")
      ":" '(eval-expression :which-key "M-:")
      "/" '(consult-line :which-key "search")
-     "<return>" '(consult-bookmark :which-key "jump to bookmark")
-     "s-<return>" '(bookmark-set :which-key "set a bookmark")))
+     "<return>" '(consult-bookmark :which-key "jump bookmark")
+     "s-<return>" '(bookmark-set :which-key "set bookmark")))
 #+end_src
 
 ** org
@@ -391,8 +389,9 @@ targets."
     (setq-local completion-at-point-functions
                 (cons #'tempel-expand
                       completion-at-point-functions)))
-  :hook ((org-mode . 'tempel-setup-capf)
-         (prog-mode . 'tempel-setup-capf)))
+  (add-hook 'conf-mode-hook 'tempel-setup-capf)
+  (add-hook 'prog-mode-hook 'tempel-setup-capf)
+  (add-hook 'text-mode-hook 'tempel-setup-capf))
 
 (use-package tempel-collection)
 #+end_Src
@@ -442,8 +441,6 @@ targets."
   :config
   (pulsar-global-mode t))
 
-(use-package eldoc)
-
 (use-package savehist
   :ensure nil
   :config (savehist-mode t))
@@ -453,6 +450,8 @@ targets."
          (eshell-mode . eat-eshell-visual-command-mode)))
 
 (use-package seq)
+
+(use-package eldoc)
 
 (use-package magit)
 
@@ -511,6 +510,7 @@ targets."
         backup-directory-alist '(("." . "~/.emacs.d/backup/"))
         create-lockfiles nil)
   (add-hook 'prog-mode-hook #'hl-line-mode)
+  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
   (electric-pair-mode t)
   (recentf-mode t)
   (window-divider-mode nil)
