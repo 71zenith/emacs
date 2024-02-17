@@ -377,6 +377,20 @@ targets."
                   ("Shell" (shfmt "-i" "4" "-ci")))))
 #+end_src
 
+*** snippets
+#+begin_src elisp :tangle "init.el"
+(use-package tempel
+  :init
+  (defun tempel-setup-capf ()
+    (setq-local completion-at-point-functions
+                (cons #'tempel-expand
+                      completion-at-point-functions)))
+  :hook ((org-mode . 'tempel-setup-capf)
+         (prog-mode . 'tempel-setup-capf)))
+
+(use-package tempel-collection)
+#+end_Src
+
 ** quality of life
 *** looks
 #+begin_src elisp :tangle "init.el"
