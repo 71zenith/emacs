@@ -12,6 +12,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
 (setq-default package-enable-at-startup nil
               use-dialog-box nil
               file-name-handler-alist nil
+              inhibit-compacting-font-caches t
               warning-minimum-level :error
               use-package-always-ensure t)
 
@@ -301,7 +302,8 @@ targets."
 	(define-key map (kbd "A") #'persp-set-buffer)
 	(define-key map (kbd "s") #'persp-switch)
 	(define-key map (kbd "b") #'persp-switch-to-buffer*)
-	(define-key map (kbd "k") #'persp-remove-buffer)
+	(define-key map (kbd "k") #'persp-kill-buffer*)
+	(define-key map (kbd "r") #'persp-rename)
 	(define-key map (kbd "h") #'persp-prev)
 	(define-key map (kbd "l") #'persp-next)
 	map))
@@ -312,6 +314,17 @@ targets."
 	(define-key map (kbd "v") #'split-window-right)
 	(define-key map (kbd "c") #'delete-window)
 	(define-key map (kbd "w") #'evil-window-next)
+	map))
+
+    (defvar my-lsp-map
+      (let ((map (make-sparse-keymap)))
+	(define-key map (kbd "r") #'xref-find-references)
+	(define-key map (kbd "d") #'xref-find-definitions)
+	(define-key map (kbd "D") #'eglot-find-declaration)
+	(define-key map (kbd "f") #'eglot-format)
+	(define-key map (kbd "R") #'eglot-rename)
+	(define-key map (kbd "c") #'eglot-code-actions)
+	(define-key map (kbd "l") #'consult-imenu)
 	map))
 
     (general-define-key
@@ -329,7 +342,6 @@ targets."
      "g" '(consult-ripgrep :which-key "grep")
      "h" `(,my-help-map :which-key "HELP")
      "i" '(insert-char :which-key "unicode")
-     "I" '(toggle-input-method :which-key "layout")
      "j" '(consult-imenu :which-key "imenu")
      "k" '(evil-commentary :which-key "comment")
      "l" `(,my-persp-map :which-key "PERSP")
@@ -343,11 +355,13 @@ targets."
      "r" '(consult-recent-file :which-key "recent")
      "s" '(save-buffer :which-key "save")
      "S" '(persp-state-save :which-key "persp save")
+     "t" '(toggle-input-method :which-key "日本")
      "u" '(consult-theme :which-key "theme")
      "v" '(consult-yank-pop :which-key "clipboard")
-     "V" '(elisp-eval-region-or-buffer :which-key "eval elisp")
+     "V" '(eval-region :which-key "eval elisp")
      "w" `(,my-window-map :which-key "WINDOW")
      "x" '(consult-flymake :which-key "flymake")
+     "z" `(,my-lsp-map :which-key "EGLOT")
      "SPC" '(execute-extended-command :which-key "M-x")
      ":" '(eval-expression :which-key "M-:")
      "/" '(consult-line :which-key "search")
@@ -393,6 +407,16 @@ targets."
   (dashboard-setup-startup-hook))
 #+end_src
 
+** eshell
+#+begin_src elisp :tangle "init.el"
+(setq eshell-prompt-function (lambda nil
+                               (concat
+                                (propertize (eshell/pwd) 'face `(:foreground "green"))
+                                (propertize " λ" 'face `(:foreground "cyan"))
+                                (propertize " "))))
+(setq eshell-highlight-prompt t)
+#+end_src
+
 ** code
 *** formatting
 #+begin_src elisp :tangle "init.el"
@@ -412,19 +436,43 @@ targets."
     (setq-local completion-at-point-functions
                 (cons #'tempel-expand
                       completion-at-point-functions)))
-  (add-hook 'conf-mode-hook 'tempel-setup-capf)
   (add-hook 'prog-mode-hook 'tempel-setup-capf)
-  (add-hook 'text-mode-hook 'tempel-setup-capf))
+  :bind (:map tempel-map
+              ("C-h" . tempel-previous)
+              ("C-l" . tempel-next)
+              ("C-k" . tempel-done)
+              ("C-j" . tempel-end)))
 
 (use-package tempel-collection)
 #+end_Src
 
 *** eglot
 #+begin_src elisp :tangle "init.el"
-(use-package eglot
-  :ensure nil
-  :hook (nix-mode . eglot-ensure))
+;; (use-package eglot
+;;   :ensure nil
+;;   :hook ((nix-mode . eglot-ensure)
+;;          (go-mode . eglot-ensure))
+;;          (sh-mode . eglot-ensure))
 #+end_src
+
+*** TODO tree sitter
+#+begin_src elisp :tangle "init.el"
+(setq treesit-language-source-alist
+      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+        (elisp "https://github.com/Wilfred/tree-sitter-elisp")))
+
+(use-package evil-textobj-tree-sitter
+  :config
+  (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
+  (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
+  (define-key evil-outer-text-objects-map "a" (evil-textobj-tree-sitter-get-textobj ("conditional.outer" "loop.outer"))))
+
+(setq major-mode-remap-alist
+      '((yaml-mode . yaml-ts-mode)
+        (sh-mode . bash-ts-mode)
+        (python-mode . python-ts-mode)))
+#+end_src
+
 
 ** quality of life
 *** looks
@@ -436,7 +484,7 @@ targets."
   :config
   (setq doom-modeline-icon nil
         doom-modeline-unicode-fallback nil
-        doom-modeline-height 38
+        doom-modeline-height 33
         doom-modeline-hud nil
         doom-modeline-buffer-encoding nil)
   (doom-modeline-mode))
@@ -474,6 +522,7 @@ targets."
           help-mode
           compilation-mode))
   (popper-mode t))
+
 #+end_src
 
 *** random
@@ -500,6 +549,8 @@ targets."
 
 (use-package nix-mode)
 
+(use-package go-mode)
+
 (use-package projectile
   :config (projectile-mode t))
 
@@ -510,6 +561,7 @@ targets."
         which-key-idle-secondary-delay 0.05)
   (which-key-mode))
 #+end_Src
+
 
 ** emacs
 #+begin_src elisp :tangle "init.el"
@@ -543,7 +595,7 @@ targets."
           (?\" . ?\")
           (?\{ . ?\})))
   (fset 'yes-or-no-p 'y-or-n-p)
-  (set-face-attribute 'default nil :height 180)
+  (set-face-attribute 'default nil :height 160)
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
   (make-directory "~/.emacs.d/backup/" t)
