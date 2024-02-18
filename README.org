@@ -457,20 +457,18 @@ targets."
 
 *** TODO tree sitter
 #+begin_src elisp :tangle "init.el"
-(setq treesit-language-source-alist
-      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-        (elisp "https://github.com/Wilfred/tree-sitter-elisp")))
-
-(use-package evil-textobj-tree-sitter
+(use-package treesit-auto
   :config
-  (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
-  (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
-  (define-key evil-outer-text-objects-map "a" (evil-textobj-tree-sitter-get-textobj ("conditional.outer" "loop.outer"))))
+  (setq treesit-auto-langs '(bash elisp)
+        treesit-auto-install 'prompt)
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
-(setq major-mode-remap-alist
-      '((yaml-mode . yaml-ts-mode)
-        (sh-mode . bash-ts-mode)
-        (python-mode . python-ts-mode)))
+(use-package evil-textobj-tree-sitter)
+  ;; :config
+  ;; (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
+  ;; (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
+  ;; (define-key evil-outer-text-objects-map "a" (evil-textobj-tree-sitter-get-textobj ("conditional.outer" "loop.outer"))))
 #+end_src
 
 
