@@ -31,9 +31,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
           `(lambda ()
              (setq file-name-handler-alist file-name-handler-alist-old)
              (setq gc-cons-threshold (* 2 1000 1000))
-             (setq gc-cons-percentage 0.1)
-             (set-frame-parameter nil 'alpha-background 94)
-             (add-to-list 'default-frame-alist '(alpha-background . 94)))
+             (setq gc-cons-percentage 0.1))
           t)
 
 (setq-default default-frame-alist
@@ -276,12 +274,14 @@ targets."
   (setq dired-listing-switches "-l --almost-all --human-readable --group-directories-first --no-group"
         dirvish-attributes '(all-the-icons file-size collapse subtree-state vc-state git-msg)
         dirvish-cache-dir (expand-file-name ".dirvish/" user-emacs-directory)
-        dirvish-mode-line-height 33)
+        dirvish-mode-line-height 33
+        dirvish-default-layout '(0 0.5 0.5))
   (general-define-key
    :states 'normal
    :keymaps 'dirvish-mode-map
    "h" 'dired-up-directory
    "l" 'dired-find-file
+   "t" 'dirvish-layout-toggle
    "/" 'dirvish-narrow
    "q" 'dirvish-quit)
   (dirvish-override-dired-mode t))
@@ -480,9 +480,6 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package treesit-auto
   :config
-  (setq treesit-auto-langs '(bash elisp nix python go java)
-        treesit-auto-install 't)
-  (treesit-auto-add-to-auto-mode-alist 'all)
   (setq treesit-language-source-alist
         '((bash "https://github.com/tree-sitter/tree-sitter-bash")
           (elisp "https://github.com/Wilfred/tree-sitter-elisp")
@@ -500,10 +497,13 @@ targets."
           (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
           (java "https://github.com/tree-sitter/tree-sitter-java")
           (rust "https://github.com/tree-sitter/tree-sitter-rust")))
+  (setq treesit-auto-langs '(bash elisp nix python go java)
+        treesit-auto-install 't)
+  (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
 (use-package evil-textobj-tree-sitter
-  :init
+  :config
   (require 'treesit)
   (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
   (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
@@ -543,6 +543,14 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package spacious-padding
   :config (spacious-padding-mode))
+
+(use-package doom-themes
+  :config
+  (load-theme 'doom-tomorrow-night t))
+
+(use-package solaire-mode
+  :config
+  (solaire-global-mode t))
 
 (use-package doom-modeline
   :config
@@ -595,10 +603,27 @@ targets."
   (popper-mode t))
 #+end_src
 
+*** git
+#+begin_src elisp :tangle "init.el"
+(use-package magit)
+
+(use-package git-gutter
+  :config (global-git-gutter-mode t)
+  (custom-set-variables
+   '(git-gutter:modified-sign "● ")
+   '(git-gutter:added-sign "▶ ")
+   '(git-gutter:deleted-sign "▼ ")))
+#+end_src
+
 *** random
 #+begin_src elisp :tangle "init.el"
 (use-package pulsar
   :config
+  (setq pulsar-pulse t
+        pulsar-delay 0.055
+        pulsar-iterations 10
+        pulsar-face 'pulsar-magenta
+        pulsar-highlight-face 'pulsar-yellow)
   (pulsar-global-mode t))
 
 (use-package savehist
@@ -611,32 +636,33 @@ targets."
 
 (use-package seq)
 
+;; eldoc popup
 (use-package eldoc)
 
 (use-package eldoc-box
   :after eldoc
   :hook (prog-mode . eldoc-box-hover-at-point-mode))
 
+
+;; better undo with session support
 (use-package undo-fu)
 
 (use-package undo-fu-session
   :config (undo-fu-session-global-mode t))
 
+
+;; nix support
 (use-package nix-mode)
 
 (use-package nix-ts-mode
   :mode "\\.nix\\'")
 
-(use-package magit)
 
 (use-package helpful)
 
 (use-package rainbow-delimiters
   :hook ((prog-mode . rainbow-delimiters-mode)
          (org-mode . rainbow-delimiters-mode)))
-
-(use-package git-gutter
-  :config (global-git-gutter-mode t))
 
 (use-package projectile
   :config (projectile-mode t))
