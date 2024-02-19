@@ -265,28 +265,26 @@ targets."
   (evil-commentary-mode))
 #+end_src
 
-** dired
+** dired (dirvish)
 #+begin_src elisp :tangle "init.el"
-;; (use-package dired
-;;   :after evil-collection
-;;   :ensure nil
-;;   :hook (dired-mode . dired-hide-details-mode)
-;;   :config
-;;   (setq dired-listing-switches
-;;         "-AGFhlv --group-directories-first --time-style=long-iso"))
-
-;; (use-package nerd-icons-dired
-;;   :hook
-;;   (dired-mode . nerd-icons-dired-mode))
-
-;; (use-package dired-single)
-
-;; (use-package async
-;;   :config
-;;   (dired-async-mode t))
-
+(use-package all-the-icons)
 (use-package dirvish
-  :config (dirvish-override-dired-mode t))
+  ;; (dirvish-attributes '(all-the-icons collapse))
+  ;; (dirvish-side-display-alist '((window-width . 0.15)
+  ;; 				(slot . -1)
+  ;; 				(side . left)))
+  :config
+  (setq dired-listing-switches "-l --almost-all --human-readable --group-directories-first --no-group"
+        dirvish-attributes '(all-the-icons file-size collapse subtree-state vc-state git-msg)
+        dirvish-mode-line-height 33)
+  (general-define-key
+   :states 'normal
+   :keymaps 'dirvish-mode-map
+   "h" 'dired-up-directory
+   "l" 'dired-find-file
+   "/" 'dirvish-narrow
+   "q" 'dirvish-quit)
+  (dirvish-override-dired-mode t))
 #+end_src
 
 ** general
@@ -389,7 +387,7 @@ targets."
    "V" '(eval-region :which-key "eval elisp")
    "w" `(,my-window-map :which-key "WINDOW")
    "x" '(consult-flymake :which-key "flymake")
-   "z" `(,my-lsp-map :which-key "EGLOT")
+   "z" '(dirvish-side :which-key "dirvish")
    "SPC" '(execute-extended-command :which-key "M-x")
    ":" '(eval-expression :which-key "M-:")
    "/" '(consult-line :which-key "search")
@@ -533,7 +531,7 @@ targets."
 
 
 ** quality of life
-*** looks
+*** modeline
 #+begin_src elisp :tangle "init.el"
 (use-package spacious-padding
   :config (spacious-padding-mode))
