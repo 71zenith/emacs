@@ -344,6 +344,18 @@ targets."
       map))
 
   (general-define-key
+   :states 'insert
+   "q" (general-key-dispatch 'self-insert-command
+         :timeout 0.25
+         "q" 'toggle-input-method))
+
+  (general-define-key
+   "<escape>" 'keyboard-escape-quit
+   "C--" 'text-scale-decrease
+   "C-0" 'text-scale-adjust
+   "C-=" 'text-scale-increase)
+
+  (general-define-key
    :states '(normal insert visual emacs)
    :prefix "SPC"
    :global-prefix "M-SPC"
@@ -430,7 +442,14 @@ targets."
                                 (propertize (eshell/pwd))
                                 (propertize " λ" 'face `(:foreground "cyan"))
                                 (propertize " "))))
-(setq eshell-highlight-prompt t)
+(setq eshell-highlight-prompt t
+      eshell-hist-ignoredups t
+      eshell-history-file-name (expand-file-name ".zsh_history" "~/")
+      eshell-banner-message "rly... emacs... again...\n"
+      eshell-history-size nil)
+
+(use-package eshell-syntax-highlighting
+  :hook (eshell-mode . eshell-syntax-highlighting-global-mode))
 #+end_src
 
 ** code
@@ -543,14 +562,6 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package spacious-padding
   :config (spacious-padding-mode))
-
-(use-package doom-themes
-  :config
-  (load-theme 'doom-tomorrow-night t))
-
-(use-package solaire-mode
-  :config
-  (solaire-global-mode t))
 
 (use-package doom-modeline
   :config
