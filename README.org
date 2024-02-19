@@ -355,6 +355,12 @@ targets."
    "C-0" 'text-scale-adjust
    "C-=" 'text-scale-increase)
 
+  ;; (general-define-key
+  ;;  :states 'normal
+  ;;  :keymaps 'eshell-mode-map
+  ;;  "h" 'eshell-previous-matching-input-from-input
+  ;;  "l" 'eshell-next-matching-input-from-input)
+
   (general-define-key
    "C-S-h" (lambda () (interactive) (enlarge-window-horizontally 5))
    "C-S-l" (lambda () (interactive) (shrink-window-horizontally 5))
@@ -449,12 +455,14 @@ targets."
                                 (propertize " "))))
 (setq eshell-highlight-prompt t
       eshell-hist-ignoredups t
-      eshell-history-file-name (expand-file-name ".zsh_history" "~/")
       eshell-banner-message "rly... emacs... again...\n"
+      eshell-prompt-regexp "^[^λ]+ λ "
       eshell-history-size nil)
 
 (use-package eshell-syntax-highlighting
-  :hook (eshell-mode . eshell-syntax-highlighting-global-mode))
+  :after eshell-mode
+  :config
+  (eshell-syntax-highlighting-global-mode +1))
 #+end_src
 
 ** code
@@ -757,4 +765,33 @@ targets."
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
+#+end_src
+
+* eshell/alias
+#+begin_src text :tangle "eshell/alias"
+alias c clear-scrollback
+alias clear clear-scrollback
+alias cat bat -p -P
+alias cd z
+alias cp cp -ivr
+alias d sudo
+alias del sudo nix-collect-garbage --delete-old
+alias df duf
+alias du dust
+alias f free -h
+alias g git
+alias ko pkill
+alias l ls -alh
+alias la eza -a
+alias ll eza -l
+alias lla eza -la
+alias ls eza --icons --git
+alias lt eza --tree
+alias mkdir mkdir -pv
+alias mv mv -iv
+alias pm pulsemixer
+alias rm rm -Ivr
+alias run-help man
+alias up sudo nixos-rebuild switch --flake ~/nix#default
+alias v nvim
 #+end_src
