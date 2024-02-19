@@ -31,7 +31,9 @@ The following is my emacs config concentrated into two files =early-init.el= and
           `(lambda ()
              (setq file-name-handler-alist file-name-handler-alist-old)
              (setq gc-cons-threshold (* 2 1000 1000))
-             (setq gc-cons-percentage 0.1))
+             (setq gc-cons-percentage 0.1)
+             (set-frame-parameter nil 'alpha-background 94)
+             (add-to-list 'default-frame-alist '(alpha-background . 94)))
           t)
 
 (setq-default default-frame-alist
@@ -40,6 +42,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
                 (undecorated . t)
                 (vertical-scroll-bars . nil)
                 (horizontal-scroll-bars . nil)))
+
 #+end_src
 
 
@@ -269,13 +272,10 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package all-the-icons)
 (use-package dirvish
-  ;; (dirvish-attributes '(all-the-icons collapse))
-  ;; (dirvish-side-display-alist '((window-width . 0.15)
-  ;; 				(slot . -1)
-  ;; 				(side . left)))
   :config
   (setq dired-listing-switches "-l --almost-all --human-readable --group-directories-first --no-group"
         dirvish-attributes '(all-the-icons file-size collapse subtree-state vc-state git-msg)
+        dirvish-cache-dir (expand-file-name ".dirvish/" user-emacs-directory)
         dirvish-mode-line-height 33)
   (general-define-key
    :states 'normal
@@ -286,6 +286,7 @@ targets."
    "q" 'dirvish-quit)
   (dirvish-override-dired-mode t))
 #+end_src
+
 
 ** general
 #+begin_src elisp :tangle "init.el"
@@ -342,17 +343,6 @@ targets."
       (define-key map (kbd "e") #'git-gutter:end-of-hunk)
       map))
 
-  (defvar my-lsp-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "r") #'xref-find-references)
-      (define-key map (kbd "d") #'xref-find-definitions)
-      (define-key map (kbd "D") #'eglot-find-declaration)
-      (define-key map (kbd "f") #'eglot-format)
-      (define-key map (kbd "R") #'eglot-rename)
-      (define-key map (kbd "c") #'eglot-code-actions)
-      (define-key map (kbd "l") #'consult-imenu)
-      map))
-
   (general-define-key
    :states '(normal insert visual emacs)
    :prefix "SPC"
@@ -360,7 +350,7 @@ targets."
    "a" `(tempel-complete :which-key "snippet")
    "b" `(,my-buffer-map :which-key "BUFFER")
    "c" `(,my-git-gutter-map :which-key "GUTTER")
-   "d" '(dired-jump :which-key "dired jump")
+   "d" '(dired-jump :which-key "dirvish")
    "e" '(embark-act :which-key "embark")
    "E" '(eshell :which-key "eshell")
    "f" '(find-file :which-key "open file")
@@ -387,7 +377,7 @@ targets."
    "V" '(eval-region :which-key "eval elisp")
    "w" `(,my-window-map :which-key "WINDOW")
    "x" '(consult-flymake :which-key "flymake")
-   "z" '(dirvish-side :which-key "dirvish")
+   "z" '(dirvish-side :which-key "dirvish side")
    "SPC" '(execute-extended-command :which-key "M-x")
    ":" '(eval-expression :which-key "M-:")
    "/" '(consult-line :which-key "search")
@@ -467,6 +457,7 @@ targets."
                 (cons #'tempel-expand
                       completion-at-point-functions)))
   (add-hook 'prog-mode-hook 'tempel-setup-capf)
+  (add-hook 'org-mode-hook 'tempel-setup-capf)
   :bind (:map tempel-map
               ("C-h" . tempel-previous)
               ("C-l" . tempel-next)
@@ -668,10 +659,9 @@ targets."
           (?\" . ?\")
           (?\{ . ?\})))
   (fset 'yes-or-no-p 'y-or-n-p)
-  (set-face-attribute 'default nil :height 180)
+  (set-face-attribute 'default nil :height 170)
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
-  (make-directory "~/.emacs.d/backup/" t)
   (setq backup-directory-alist `(("." . ,(locate-user-emacs-file "backups")))
         vc-make-backup-files t
         version-control t
