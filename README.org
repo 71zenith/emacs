@@ -356,6 +356,12 @@ targets."
    "C-=" 'text-scale-increase)
 
   (general-define-key
+   "C-S-h" (lambda () (interactive) (enlarge-window-horizontally 5))
+   "C-S-l" (lambda () (interactive) (shrink-window-horizontally 5))
+   "C-S-k" (lambda () (interactive) (enlarge-window 5))
+   "C-S-j" (lambda () (interactive) (shrink-window 5)))
+
+  (general-define-key
    :states '(normal insert visual emacs)
    :prefix "SPC"
    :global-prefix "M-SPC"
@@ -383,7 +389,6 @@ targets."
    "r" '(consult-recent-file :which-key "recent")
    "s" '(save-buffer :which-key "save")
    "S" '(persp-state-save :which-key "persp save")
-   "t" '(toggle-input-method :which-key "日本")
    "u" '(consult-theme :which-key "theme")
    "v" '(consult-yank-pop :which-key "clipboard")
    "V" '(eval-region :which-key "eval elisp")
