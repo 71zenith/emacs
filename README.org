@@ -16,6 +16,8 @@ The following is my emacs config concentrated into two files =early-init.el= and
               warning-minimum-level :error
               use-package-always-ensure t)
 
+(defvar native-comp-async-report-warnings-errors 'silent)
+
 (defun display-startup-echo-area-message ()
   (message ""))
 
@@ -199,9 +201,9 @@ targets."
                      (not (string-suffix-p "-argument" (cdr binding))))))))
 
   (setq embark-indicators
-	'(embark-which-key-indicator
-	  embark-highlight-indicator
-	  embark-isearch-highlight-indicator))
+        '(embark-which-key-indicator
+          embark-highlight-indicator
+          embark-isearch-highlight-indicator))
 
   (defun embark-hide-which-key-indicator (fn &rest args)
     "Hide the which-key indicator immediately when using the completing-read prompter."
@@ -235,7 +237,7 @@ targets."
         evil-want-C-u-scroll t
         evil-vsplit-window-right t
         evil-split-window-below t
-        evil-undo-system 'undo-redo
+        evil-undo-system 'undo-fu
         evil-want-integration t)
   (evil-mode t))
 
@@ -265,131 +267,134 @@ targets."
 
 ** dired
 #+begin_src elisp :tangle "init.el"
-(use-package dired
-  :after evil-collection
-  :ensure nil
-  :hook (dired-mode . dired-hide-details-mode)
-  :config
-  (setq dired-listing-switches
-        "-AGFhlv --group-directories-first --time-style=long-iso"))
+;; (use-package dired
+;;   :after evil-collection
+;;   :ensure nil
+;;   :hook (dired-mode . dired-hide-details-mode)
+;;   :config
+;;   (setq dired-listing-switches
+;;         "-AGFhlv --group-directories-first --time-style=long-iso"))
 
-(use-package nerd-icons-dired
-  :hook
-  (dired-mode . nerd-icons-dired-mode))
+;; (use-package nerd-icons-dired
+;;   :hook
+;;   (dired-mode . nerd-icons-dired-mode))
 
-(use-package dired-single)
+;; (use-package dired-single)
 
-(use-package async
-  :config
-  (dired-async-mode t))
+;; (use-package async
+;;   :config
+;;   (dired-async-mode t))
+
+(use-package dirvish
+  :config (dirvish-override-dired-mode t))
 #+end_src
 
 ** general
 #+begin_src elisp :tangle "init.el"
-  (use-package general
-    :config
-    (defvar my-help-map
-      (let ((map (make-sparse-keymap)))
-	(define-key map (kbd "h") #'helpful-symbol)
-	(define-key map (kbd "o") #'describe-symbol)
-	(define-key map (kbd "k") #'describe-keymap)
-	(define-key map (kbd "K") #'helpful-key)
-	(define-key map (kbd "m") #'describe-mode)
-	(define-key map (kbd "M") #'man)
-	(define-key map (kbd "p") #'helpful-at-point)
-	map))
+(use-package general
+  :config
+  (defvar my-help-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "h") #'helpful-symbol)
+      (define-key map (kbd "o") #'describe-symbol)
+      (define-key map (kbd "k") #'describe-keymap)
+      (define-key map (kbd "K") #'helpful-key)
+      (define-key map (kbd "m") #'describe-mode)
+      (define-key map (kbd "M") #'man)
+      (define-key map (kbd "p") #'helpful-at-point)
+      map))
 
-    (defvar my-buffer-map
-      (let ((map (make-sparse-keymap)))
-	(define-key map (kbd "b") #'consult-buffer)
-	(define-key map (kbd "k") #'kill-current-buffer)
-	(define-key map (kbd "n") #'next-buffer)
-	(define-key map (kbd "p") #'previous-buffer)
-	(define-key map (kbd "s") #'scratch-buffer)
-	map))
+  (defvar my-buffer-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "b") #'consult-buffer)
+      (define-key map (kbd "k") #'kill-current-buffer)
+      (define-key map (kbd "n") #'next-buffer)
+      (define-key map (kbd "p") #'previous-buffer)
+      (define-key map (kbd "s") #'scratch-buffer)
+      map))
 
-    (defvar my-persp-map
-      (let ((map (make-sparse-keymap)))
-	(define-key map (kbd "c") #'persp-kill)
-	(define-key map (kbd "a") #'persp-add-buffer)
-	(define-key map (kbd "A") #'persp-set-buffer)
-	(define-key map (kbd "s") #'persp-switch)
-	(define-key map (kbd "b") #'persp-switch-to-buffer*)
-	(define-key map (kbd "k") #'persp-kill-buffer*)
-	(define-key map (kbd "r") #'persp-rename)
-	(define-key map (kbd "h") #'persp-prev)
-	(define-key map (kbd "l") #'persp-next)
-	map))
+  (defvar my-persp-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "c") #'persp-kill)
+      (define-key map (kbd "a") #'persp-add-buffer)
+      (define-key map (kbd "A") #'persp-set-buffer)
+      (define-key map (kbd "s") #'persp-switch)
+      (define-key map (kbd "b") #'persp-switch-to-buffer*)
+      (define-key map (kbd "k") #'persp-kill-buffer*)
+      (define-key map (kbd "r") #'persp-rename)
+      (define-key map (kbd "h") #'persp-prev)
+      (define-key map (kbd "l") #'persp-next)
+      map))
 
-    (defvar my-window-map
-      (let ((map (make-sparse-keymap)))
-	(define-key map (kbd "s") #'split-window-below)
-	(define-key map (kbd "v") #'split-window-right)
-	(define-key map (kbd "c") #'delete-window)
-	(define-key map (kbd "w") #'evil-window-next)
-	map))
+  (defvar my-window-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "s") #'split-window-below)
+      (define-key map (kbd "v") #'split-window-right)
+      (define-key map (kbd "c") #'delete-window)
+      (define-key map (kbd "w") #'evil-window-next)
+      map))
 
-    (defvar my-git-gutter-map
-      (let ((map (make-sparse-keymap)))
-	(define-key map (kbd "k") #'git-gutter:next-hunk)
-	(define-key map (kbd "j") #'git-gutter:previous-hunk)
-	(define-key map (kbd "r") #'git-gutter:revert-hunk)
-	(define-key map (kbd "s") #'git-gutter:stage-hunk)
-	(define-key map (kbd "p") #'git-gutter:popup-hunk)
-	(define-key map (kbd "e") #'git-gutter:end-of-hunk)
-	map))
+  (defvar my-git-gutter-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "k") #'git-gutter:next-hunk)
+      (define-key map (kbd "j") #'git-gutter:previous-hunk)
+      (define-key map (kbd "r") #'git-gutter:revert-hunk)
+      (define-key map (kbd "s") #'git-gutter:stage-hunk)
+      (define-key map (kbd "p") #'git-gutter:popup-hunk)
+      (define-key map (kbd "e") #'git-gutter:end-of-hunk)
+      map))
 
-    (defvar my-lsp-map
-      (let ((map (make-sparse-keymap)))
-	(define-key map (kbd "r") #'xref-find-references)
-	(define-key map (kbd "d") #'xref-find-definitions)
-	(define-key map (kbd "D") #'eglot-find-declaration)
-	(define-key map (kbd "f") #'eglot-format)
-	(define-key map (kbd "R") #'eglot-rename)
-	(define-key map (kbd "c") #'eglot-code-actions)
-	(define-key map (kbd "l") #'consult-imenu)
-	map))
+  (defvar my-lsp-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "r") #'xref-find-references)
+      (define-key map (kbd "d") #'xref-find-definitions)
+      (define-key map (kbd "D") #'eglot-find-declaration)
+      (define-key map (kbd "f") #'eglot-format)
+      (define-key map (kbd "R") #'eglot-rename)
+      (define-key map (kbd "c") #'eglot-code-actions)
+      (define-key map (kbd "l") #'consult-imenu)
+      map))
 
-    (general-define-key
-     :states '(normal insert visual emacs)
-     :prefix "SPC"
-     :global-prefix "M-SPC"
-     "a" `(tempel-complete :which-key "snippet")
-     "b" `(,my-buffer-map :which-key "BUFFER")
-     "c" `(,my-git-gutter-map :which-key "GUTTER")
-     "d" '(dired-jump :which-key "dired jump")
-     "e" '(embark-act :which-key "embark")
-     "E" '(eshell :which-key "eshell")
-     "f" '(find-file :which-key "open file")
-     "F" '(consult-find :which-key "find")
-     "g" '(consult-ripgrep :which-key "grep")
-     "h" `(,my-help-map :which-key "HELP")
-     "i" '(insert-char :which-key "unicode")
-     "j" '(consult-imenu :which-key "imenu")
-     "k" '(evil-commentary :which-key "comment")
-     "l" `(,my-persp-map :which-key "PERSP")
-     "L" '(persp-state-load :which-key "persp load")
-     "m" '(magit :which-key "magit")
-     "n" '(format-all-region-or-buffer :which-key "format")
-     "o" '(evil-indent-line :which-key "indent")
-     "p" '(projectile-find-file :which-key "proj find")
-     "P" '(projectile-switch-project :which-key "project")
-     "Q" '(save-buffers-kill-emacs :which-key "quit")
-     "r" '(consult-recent-file :which-key "recent")
-     "s" '(save-buffer :which-key "save")
-     "S" '(persp-state-save :which-key "persp save")
-     "t" '(toggle-input-method :which-key "日本")
-     "u" '(consult-theme :which-key "theme")
-     "v" '(consult-yank-pop :which-key "clipboard")
-     "V" '(eval-region :which-key "eval elisp")
-     "w" `(,my-window-map :which-key "WINDOW")
-     "x" '(consult-flymake :which-key "flymake")
-     "z" `(,my-lsp-map :which-key "EGLOT")
-     "SPC" '(execute-extended-command :which-key "M-x")
-     ":" '(eval-expression :which-key "M-:")
-     "/" '(consult-line :which-key "search")
-     "<return>" '(consult-bookmark :which-key "jump bookmark")
-     "s-<return>" '(bookmark-set :which-key "set bookmark")))
+  (general-define-key
+   :states '(normal insert visual emacs)
+   :prefix "SPC"
+   :global-prefix "M-SPC"
+   "a" `(tempel-complete :which-key "snippet")
+   "b" `(,my-buffer-map :which-key "BUFFER")
+   "c" `(,my-git-gutter-map :which-key "GUTTER")
+   "d" '(dired-jump :which-key "dired jump")
+   "e" '(embark-act :which-key "embark")
+   "E" '(eshell :which-key "eshell")
+   "f" '(find-file :which-key "open file")
+   "F" '(consult-find :which-key "find")
+   "g" '(consult-ripgrep :which-key "grep")
+   "h" `(,my-help-map :which-key "HELP")
+   "i" '(insert-char :which-key "unicode")
+   "j" '(consult-imenu :which-key "imenu")
+   "k" '(evil-commentary :which-key "comment")
+   "l" `(,my-persp-map :which-key "PERSP")
+   "L" '(persp-state-load :which-key "persp load")
+   "m" '(magit :which-key "magit")
+   "n" '(format-all-region-or-buffer :which-key "format")
+   "o" '(evil-indent-line :which-key "indent")
+   "p" '(projectile-find-file :which-key "proj find")
+   "P" '(projectile-switch-project :which-key "project")
+   "Q" '(save-buffers-kill-emacs :which-key "quit")
+   "r" '(consult-recent-file :which-key "recent")
+   "s" '(save-buffer :which-key "save")
+   "S" '(persp-state-save :which-key "persp save")
+   "t" '(toggle-input-method :which-key "日本")
+   "u" '(consult-theme :which-key "theme")
+   "v" '(consult-yank-pop :which-key "clipboard")
+   "V" '(eval-region :which-key "eval elisp")
+   "w" `(,my-window-map :which-key "WINDOW")
+   "x" '(consult-flymake :which-key "flymake")
+   "z" `(,my-lsp-map :which-key "EGLOT")
+   "SPC" '(execute-extended-command :which-key "M-x")
+   ":" '(eval-expression :which-key "M-:")
+   "/" '(consult-line :which-key "search")
+   "<return>" '(consult-bookmark :which-key "jump bookmark")
+   "s-<return>" '(bookmark-set :which-key "set bookmark")))
 #+end_src
 
 ** org
@@ -486,8 +491,8 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package treesit-auto
   :config
-  (setq treesit-auto-langs '(bash)
-        treesit-auto-install 'prompt)
+  (setq treesit-auto-langs '(bash elisp)
+        treesit-auto-install 't)
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
@@ -544,14 +549,20 @@ targets."
 
 (use-package keycast
   :config
-  (setq keycast-mode-line-format "%2s%k%c%R")
-  (setq keycast-mode-line-insert-after 'mode-line-modes)
+  (setq keycast-mode-line-format "%2s%k%c%R ")
   (dolist (input '(self-insert-command org-self-insert-command))
     (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
 
   (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
     (add-to-list 'keycast-substitute-alist `(,event nil)))
-  (keycast-header-line-mode))
+  (define-minor-mode keycast-mode
+    "Show current command and its key binding in the mode line (fix for use with doom-mode-line)."
+    :global t
+    (if keycast-mode
+        (add-hook 'pre-command-hook 'keycast--update t)
+      (remove-hook 'pre-command-hook 'keycast--update)))
+  (add-to-list 'global-mode-string '("" keycast-mode-line))
+  (keycast-mode))
 #+end_src
 
 *** popper
@@ -576,7 +587,6 @@ targets."
           help-mode
           compilation-mode))
   (popper-mode t))
-
 #+end_src
 
 *** random
@@ -597,17 +607,22 @@ targets."
 
 (use-package eldoc)
 
+(use-package eldoc-box
+  :after eldoc
+  :hook (prog-mode . eldoc-box-hover-at-point-mode))
+
+(use-package undo-fu)
+
+(use-package undo-fu-session
+  :config (undo-fu-session-global-mode t))
+
 (use-package magit)
 
 (use-package helpful)
 
-(use-package nix-mode)
-
-(use-package go-mode)
-
-;; (use-package rainbow-delimiters
-;;   :hook ((prog-mode . rainbow-delimiters-mode))
-;;          (org-mode . rainbow-delimiters-mode))
+(use-package rainbow-delimiters
+  :hook ((prog-mode . rainbow-delimiters-mode)
+         (org-mode . rainbow-delimiters-mode)))
 
 (use-package git-gutter
   :config (global-git-gutter-mode t))
@@ -616,7 +631,6 @@ targets."
   :config (projectile-mode t))
 
 (use-package which-key
-  :diminish which-key-mode
   :config
   (setq which-key-idle-delay 0.5
         which-key-idle-secondary-delay 0.05)
@@ -660,8 +674,13 @@ targets."
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
   (make-directory "~/.emacs.d/backup/" t)
-  (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/backup/" t))
-        backup-directory-alist '(("." . "~/.emacs.d/backup/"))
+  (setq backup-directory-alist `(("." . ,(locate-user-emacs-file "backups")))
+        vc-make-backup-files t
+        version-control t
+        kept-old-versions 0
+        kept-new-versions 10
+        delete-old-versions t
+        backup-by-copying t
         create-lockfiles nil)
   (add-hook 'prog-mode-hook #'hl-line-mode)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
