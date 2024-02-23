@@ -1,8 +1,9 @@
-#+TITLE: emacs cfg
+#+TITLE: emacs config
 #+AUTHOR: zen
 #+EMAIL: 71zenith@proton.me
 
 The following is my emacs config concentrated into two files =early-init.el= and =init.el=.
+Additionally, there is a file containing shell aliases in =eshell/aliases=.
 
 [[file:screenshot.png]]
 -----
@@ -31,7 +32,9 @@ The following is my emacs config concentrated into two files =early-init.el= and
           `(lambda ()
              (setq file-name-handler-alist file-name-handler-alist-old)
              (setq gc-cons-threshold (* 2 1000 1000))
-             (setq gc-cons-percentage 0.1))
+             (setq gc-cons-percentage 0.1)
+             (set-frame-parameter nil 'alpha-background 96)
+             (add-to-list 'default-frame-alist '(alpha-background . 96)))
           t)
 
 (setq-default default-frame-alist
@@ -40,7 +43,6 @@ The following is my emacs config concentrated into two files =early-init.el= and
                 (undecorated . t)
                 (vertical-scroll-bars . nil)
                 (horizontal-scroll-bars . nil)))
-
 #+end_src
 
 
@@ -149,6 +151,7 @@ The following is my emacs config concentrated into two files =early-init.el= and
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
+  (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-elisp-block)
   (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
@@ -221,14 +224,20 @@ targets."
   (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
 
-** perspective
+** spell
 #+begin_src elisp :tangle "init.el"
-(use-package perspective
-  :config
-  (setq persp-state-default-file "~/.emacs.d/perspective")
-  (persp-mode t))
+;; (use-package spell-fu
+;;   :config
+;;   (spell-fu-global-mode))
 #+end_src
 
+** perspective
+#+begin_src elisp :tangle "init.el"
+;; (use-package perspective
+;;   :config
+;;   (setq persp-state-default-file "~/.emacs.d/perspective")
+;;   (persp-mode t))
+#+end_src
 
 ** evil
 #+begin_Src elisp :tangle "init.el"
@@ -249,7 +258,7 @@ targets."
 (use-package evil-goggles
   :after evil
   :config
-  (setq evil-goggles-duration 0.05)
+  (setq evil-goggles-duration 0.10)
   (evil-goggles-mode))
 
 (use-package evil-snipe
@@ -355,12 +364,6 @@ targets."
    "C-0" 'text-scale-adjust
    "C-=" 'text-scale-increase)
 
-  ;; (general-define-key
-  ;;  :states 'normal
-  ;;  :keymaps 'eshell-mode-map
-  ;;  "h" 'eshell-previous-matching-input-from-input
-  ;;  "l" 'eshell-next-matching-input-from-input)
-
   (general-define-key
    "C-S-h" (lambda () (interactive) (enlarge-window-horizontally 5))
    "C-S-l" (lambda () (interactive) (shrink-window-horizontally 5))
@@ -383,7 +386,6 @@ targets."
    "h" `(,my-help-map :which-key "HELP")
    "i" '(insert-char :which-key "unicode")
    "j" '(consult-imenu :which-key "imenu")
-   "k" '(evil-commentary :which-key "comment")
    "l" `(,my-persp-map :which-key "PERSP")
    "L" '(persp-state-load :which-key "persp load")
    "m" '(magit :which-key "magit")
@@ -404,8 +406,8 @@ targets."
    "SPC" '(execute-extended-command :which-key "M-x")
    ":" '(eval-expression :which-key "M-:")
    "/" '(consult-line :which-key "search")
-   "<return>" '(consult-bookmark :which-key "jump bookmark")
-   "s-<return>" '(bookmark-set :which-key "set bookmark")))
+   "<return>" '(consult-bookmark :which-key "jump bmark")
+   "s-<return>" '(bookmark-set :which-key "set bmark")))
 #+end_src
 
 ** org
@@ -437,6 +439,10 @@ targets."
   (add-hook 'elpaca-after-init-hook #'dashboard-insert-startupify-lists)
   (add-hook 'elpaca-after-init-hook #'dashboard-initialize)
   (setq dashboard-center-content t
+        dashboard-vertically-center-content t
+        dashboard-display-icons-p t
+        dashboard-set-file-icons t
+        dashboard-set-heading-icons t
         dashboard-banner-logo-title "Present Day.. Present Time! HAHAHA!"
         dashboard-set-footer nil
         dashboard-startup-banner (concat user-emacs-directory "lain.png")
@@ -460,15 +466,14 @@ targets."
       eshell-history-size nil)
 
 (use-package eshell-syntax-highlighting
-  :after eshell-mode
-  :config
-  (eshell-syntax-highlighting-global-mode +1))
+  :hook
+  (eshell-mode . eshell-syntax-highlighting-mode))
 #+end_src
 
 ** code
 *** AI
 #+begin_src elisp :tangle "init.el"
-(use-package gptel)
+;; (use-package gptel)
 #+end_src
 *** formatting
 #+begin_src elisp :tangle "init.el"
@@ -488,7 +493,6 @@ targets."
     (setq-local completion-at-point-functions
                 (cons #'tempel-expand
                       completion-at-point-functions)))
-  (add-hook 'prog-mode-hook 'tempel-setup-capf)
   (add-hook 'org-mode-hook 'tempel-setup-capf)
   :bind (:map tempel-map
               ("C-h" . tempel-previous)
@@ -497,18 +501,13 @@ targets."
               ("C-j" . tempel-end)))
 
 (use-package tempel-collection)
+
+(use-package yasnippet-snippets)
+(use-package yasnippet
+  :hook (prog-mode . yas-minor-mode))
 #+end_Src
 
-*** eglot
-#+begin_src elisp :tangle "init.el"
-;; (use-package eglot
-;;   :ensure nil
-;;   :hook ((nix-mode . eglot-ensure)
-;;          (go-mode . eglot-ensure))
-;;          (sh-mode . eglot-ensure))
-#+end_src
-
-*** TODO tree sitter
+*** tree sitter
 #+begin_src elisp :tangle "init.el"
 (use-package treesit-auto
   :config
@@ -518,6 +517,7 @@ targets."
           (go "https://github.com/tree-sitter/tree-sitter-go")
           (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
           (html "https://github.com/tree-sitter/tree-sitter-html")
+          (c "https://github.com/tree-sitter/tree-sitter-c")
           (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
           (json "https://github.com/tree-sitter/tree-sitter-json")
           (make "https://github.com/alemuller/tree-sitter-make")
@@ -529,8 +529,7 @@ targets."
           (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
           (java "https://github.com/tree-sitter/tree-sitter-java")
           (rust "https://github.com/tree-sitter/tree-sitter-rust")))
-  (setq treesit-auto-langs '(bash elisp nix python go java)
-        treesit-auto-install 't)
+  (setq treesit-auto-install 't)
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
@@ -603,28 +602,14 @@ targets."
   (keycast-mode))
 #+end_src
 
-*** popper
+*** popwin
 #+begin_src elisp :tangle "init.el"
-(use-package popper
+(use-package popwin
   :config
-  (setq popper-reference-buffers
-        '("\\*Messages\\*"
-          "\\*Warnings\\*"
-          "\\*xref\\*"
-          "\\*Backtrace\\*"
-          "*Flymake diagnostics.*"
-          "*helpful.*"
-          "*git-gutter.*"
-          "\\*eldoc\\*"
-          "\\*compilation\\*"
-          "^*tex"
-          "Output\\*$"
-          "\\*Async Shell Command\\*"
-          "\\*Dtache Shell Command\\*"
-          "\\*GDB.*out\\*"
-          help-mode
-          compilation-mode))
-  (popper-mode t))
+  (popwin-mode 1)
+  (global-set-key (kbd "C-z") popwin:keymap)
+  (push '("*helpful*" :height 7) popwin:special-display-config)
+  (push '("*eshell*" :height 7) popwin:special-display-config))
 #+end_src
 
 *** git
@@ -646,8 +631,8 @@ targets."
   (setq pulsar-pulse t
         pulsar-delay 0.055
         pulsar-iterations 10
-        pulsar-face 'pulsar-magenta
-        pulsar-highlight-face 'pulsar-yellow)
+        pulsar-face 'pulsar-cyan
+        pulsar-highlight-face 'pulsar-green)
   (pulsar-global-mode t))
 
 (use-package savehist
@@ -661,32 +646,30 @@ targets."
 (use-package seq)
 
 ;; eldoc popup
-(use-package eldoc)
+;; (use-package eldoc)
 
-(use-package eldoc-box
-  :after eldoc
-  :hook (prog-mode . eldoc-box-hover-at-point-mode))
+;; (use-package eldoc-box
+;;   :after eldoc
+;;   :hook (prog-mode . eldoc-box-hover-at-point-mode))
 
 
-;; better undo with session support
 (use-package undo-fu)
-
 (use-package undo-fu-session
   :config (undo-fu-session-global-mode t))
 
 
-;; nix support
-(use-package nix-mode)
+(use-package markdown-mode)
 
+(use-package nix-mode)
 (use-package nix-ts-mode
   :mode "\\.nix\\'")
 
-
 (use-package helpful)
 
-(use-package rainbow-delimiters
-  :hook ((prog-mode . rainbow-delimiters-mode)
-         (org-mode . rainbow-delimiters-mode)))
+;; (use-package rainbow-delimiters
+;;   :hook ((prog-mode . rainbow-delimiters-mode)
+;;          (org-mode . rainbow-delimiters-mode)))
+(use-package prismprism-mode)
 
 (use-package projectile
   :config (projectile-mode t))
@@ -708,6 +691,7 @@ targets."
         completion-cycle-threshold 3
         scroll-step 1
         scroll-margin 3
+        find-file-visit-truename t
         scroll-conservatively 10000
         make-backup-files nil
         next-screen-context-lines 5
@@ -731,7 +715,7 @@ targets."
           (?\" . ?\")
           (?\{ . ?\})))
   (fset 'yes-or-no-p 'y-or-n-p)
-  (set-face-attribute 'default nil :height 170)
+  (set-face-attribute 'default nil :height 200)
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
   (setq backup-directory-alist `(("." . ,(locate-user-emacs-file "backups")))
@@ -772,10 +756,9 @@ targets."
 alias c clear-scrollback
 alias clear clear-scrollback
 alias cat bat -p -P
-alias cd z
 alias cp cp -ivr
 alias d sudo
-alias del sudo nix-collect-garbage --delete-old
+alias del sudo nix-collect-garbage --delete-old 
 alias df duf
 alias du dust
 alias f free -h
@@ -789,9 +772,6 @@ alias ls eza --icons --git
 alias lt eza --tree
 alias mkdir mkdir -pv
 alias mv mv -iv
-alias pm pulsemixer
 alias rm rm -Ivr
-alias run-help man
 alias up sudo nixos-rebuild switch --flake ~/nix#default
-alias v nvim
 #+end_src
