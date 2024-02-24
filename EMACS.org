@@ -359,10 +359,9 @@ targets."
      `("h" . ,my-help-map)
      '("i" . insert-char)
      '("j" . consult-imenu)
-     (cons "l" popwin:keymap)
      '("k" . comment-or-uncomment-region)
-     '("m"
-       . magit)
+     (cons "l" popwin:keymap)
+     '("m" . magit)
      '("n" . format-all-region-or-buffer)
      '("o" . indent-region)
      '("p" . consult-project-buffer)
@@ -370,11 +369,12 @@ targets."
      '("Q" . save-buffers-kill-emacs)
      '("r" . consult-recent-file)
      '("s" . save-buffer)
+     '("t" . prism-randomize-colors)
      '("u" . consult-theme)
      '(":" . eval-expression)
      '("/" . consult-line)
      '("v" . consult-yank-pop)
-     '("V" . eval-region)
+     '("V" . eval-region) 
      `("w" . ,my-window-map)
      '("1" . meow-digit-argument)
      '("2" . meow-digit-argument)
@@ -544,7 +544,7 @@ targets."
 
 (use-package eldoc-box
   :diminish (eldoc-box-hover-at-point-mode)
-  :after eldoc
+  :after eldoc  
   :hook (prog-mode . eldoc-box-hover-at-point-mode))
 
 (use-package helpful)
