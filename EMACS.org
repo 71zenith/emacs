@@ -509,6 +509,8 @@ targets."
         (elisp "https://github.com/Wilfred/tree-sitter-elisp")
         (css "https://github.com/tree-sitter/tree-sitter-css")
         (html "https://github.com/tree-sitter/tree-sitter-html")
+        (go "https://github.com/tree-sitter/tree-sitter-go")
+        (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
         (nix "https://github.com/nix-community/tree-sitter-nix")
         (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
         (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
@@ -585,6 +587,8 @@ targets."
 (use-package prism
   :hook ((org-mode prog-mode) . prism-mode))
 
+(use-package rainbow-mode :commands (rainbow-mode))
+
 (use-package which-key
   :diminish (which-key-mode)
   :config
@@ -612,19 +616,18 @@ targets."
 ** dired
 #+begin_src elisp :tangle "init.el"
 (use-package dired
+  :hook ((dired-mode . hl-line-mode))
   :ensure nil
+  :bind (:map dired-mode-map
+	          ("l" . dired-find-file)
+              ("h" . dired-up-directory))
   :config
+  (require 'dired-x)
   (setq dired-listing-switches
-        "-AGFhlv --group-directories-first --time-style=long-iso"))
-
-(use-package dired-single
-  :config
-  (define-key dired-mode-map [remap dired-find-file]
-	      'dired-single-buffer)
-  (define-key dired-mode-map [remap dired-mouse-find-file-other-window]
-	      'dired-single-buffer-mouse)
-  (define-key dired-mode-map [remap dired-up-directory]
-	      'dired-single-up-directory))
+        "-AGFhlv --group-directories-first --time-style=long-iso"
+        dired-mouse-drag-files t
+        dired-bind-jump nil
+        dired-kill-when-opening-new-dired-buffer t))
 
 (use-package async
   :config
@@ -666,8 +669,8 @@ targets."
           (?\" . ?\")
           (?\{ . ?\})))
   
-  (set-face-attribute 'default nil :height 190)
-  
+  (set-face-attribute 'default nil :family "Iosevka Comfy" :height 190)
+
   (define-fringe-bitmap 'right-curly-arrow
     [#b11111111
      #b00000001
