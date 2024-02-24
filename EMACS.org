@@ -29,8 +29,8 @@
              (setq vc-handled-backends vc-handled-backends-old)
              (setq gc-cons-threshold (* 2 1000 1000))
              (setq gc-cons-percentage 0.1)
-             (set-frame-parameter nil 'alpha-background 90)
-             (add-to-list 'default-frame-alist '(alpha-background . 90)))
+             (set-frame-parameter nil 'alpha-background 0)
+             (add-to-list 'default-frame-alist '(alpha-background . 0)))
           t)
 
 (add-hook 'emacs-startup-hook
@@ -701,7 +701,7 @@ targets."
         use-short-answers t
         initial-major-mode 'org-mode
         inhibit-startup-screen t
-        display-time-format "%H:%M"
+        display-time-format "%a %d %b %H:%M"
         display-time-default-load-average nil
         default-input-method "japanese"
         enable-recursive-minibuffers t
