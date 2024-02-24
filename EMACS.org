@@ -290,15 +290,14 @@ targets."
   (eshell-mode . eshell-syntax-highlighting-mode))
 #+end_src
 
-*** popwin
+** popwin
 #+begin_src elisp :tangle "init.el"
 (use-package popwin
   :config
   (popwin-mode 1)
-  (global-set-key (kbd "C-z") popwin:keymap)
   (push '("*helpful*" :height 7) popwin:special-display-config)
   (push '("*tree-sit*" :height 7 :noselect t) popwin:special-display-config)
-  (push '("*eshell*" :height 7) popwin:special-display-config))
+  (push '("*eshell-toggle*" :height 7) popwin:special-display-config))
 #+end_src
 
 ** meow
@@ -315,6 +314,31 @@ targets."
       (define-key map (kbd "M") #'man)
       (define-key map (kbd "p") #'helpful-at-point)
       map))
+  (defvar my-buffer-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "b") #'consult-buffer)
+      (define-key map (kbd "k") #'kill-current-buffer)
+      (define-key map (kbd "n") #'next-buffer)
+      (define-key map (kbd "p") #'previous-buffer)
+      (define-key map (kbd "s") #'scratch-buffer)
+      map))
+  (defvar my-window-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "s") #'split-window-below)
+      (define-key map (kbd "v") #'split-window-right)
+      (define-key map (kbd "c") #'delete-window)
+      (define-key map (kbd "w") #'other-window)
+      map))
+  (defvar my-git-gutter-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "k") #'git-gutter:next-hunk)
+      (define-key map (kbd "j") #'git-gutter:previous-hunk)
+      (define-key map (kbd "r") #'git-gutter:revert-hunk)
+      (define-key map (kbd "s") #'git-gutter:stage-hunk)
+      (define-key map (kbd "p") #'git-gutter:popup-hunk)
+      (define-key map (kbd "e") #'git-gutter:end-of-hunk)
+      map))
+
   (defun meow-setup ()
     (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
     (meow-motion-overwrite-define-key
@@ -322,22 +346,27 @@ targets."
      '("k" . meow-prev)
      '("<escape>" . ignore))
     (meow-leader-define-key
-     '("j" . "H-j")
-     '("k" . "H-k")
+     '("SPC" . execute-extended-command)
      '("a" . embark-act)
-     `("b" . ,my-help-map)
+	 `("b" . ,my-buffer-map)
+     `("c" . ,my-git-gutter-map)
      '("d" . dired-jump)
      '("e" . embark-act)
      '("E" . eshell)
      '("f" . find-file)
      '("F" . consult-fd)
      '("g" . consult-ripgrep)
+     `("h" . ,my-help-map)
      '("i" . insert-char)
      '("j" . consult-imenu)
+     (cons "l" popwin:keymap)
      '("k" . comment-or-uncomment-region)
-     '("m" . magit)
+     '("m"
+       . magit)
      '("n" . format-all-region-or-buffer)
      '("o" . indent-region)
+     '("p" . consult-project-buffer)
+     '("P" . project-switch-project)
      '("Q" . save-buffers-kill-emacs)
      '("r" . consult-recent-file)
      '("s" . save-buffer)
@@ -346,7 +375,7 @@ targets."
      '("/" . consult-line)
      '("v" . consult-yank-pop)
      '("V" . eval-region)
-     (cons "p" popwin:keymap)
+     `("w" . ,my-window-map)
      '("1" . meow-digit-argument)
      '("2" . meow-digit-argument)
      '("3" . meow-digit-argument)
@@ -528,10 +557,7 @@ targets."
   :config
   (setq which-key-idle-delay 0.2
         which-key-idle-secondary-delay 0.02)
-  (setq which-key-prefix-prefix "◉ ")
-  (setq which-key-sort-order 'which-key-key-order-alpha
-        which-key-min-display-lines 4
-        which-key-max-display-columns nil)
+  (setq which-key-prefix-prefix "◉")
   (which-key-setup-minibuffer)
   (which-key-mode))
 #+end_Src
@@ -552,15 +578,15 @@ targets."
         next-screen-context-lines 5
         tab-always-indent 'complete
         comment-multi-line nil
-	    vc-follow-symlinks t
+        vc-follow-symlinks t
         line-move-visual nil
         initial-scratch-message nil
         indicate-empty-lines t
-	    vc-make-backup-files nil
+        vc-make-backup-files nil
         confirm-kill-emacs nil
         show-trailing-whitespace t
-	    use-short-answers t
-	    initial-major-mode 'org-mode
+        use-short-answers t
+        initial-major-mode 'org-mode
         inhibit-startup-screen t
         display-time-format "%H:%M"
         display-time-default-load-average nil
@@ -574,15 +600,34 @@ targets."
           (?\{ . ?\})))
   
   (set-face-attribute 'default nil :height 190)
-
+  
+  (define-fringe-bitmap 'right-curly-arrow
+    [#b00000000
+     #b00000000
+     #b00000000
+     #b00000000
+     #b01110000
+     #b00010000
+     #b00010000
+     #b00000000])
+  (define-fringe-bitmap 'left-curly-arrow
+    [#b00000000
+     #b00001000
+     #b00001000
+     #b00001110
+     #b00000000
+     #b00000000
+     #b00000000
+     #b00000000])
+  
   (setq create-lockfiles nil
-	    make-backup-files nil
-	    version-control t
-	    backup-by-copying t
-	    delete-old-versions t
-	    kept-old-versions 5
-	    kept-new-versions 5
-	    backup-directory-alist (list (cons "." (concat user-emacs-directory "backup/"))))
+	make-backup-files nil
+	version-control t
+	backup-by-copying t
+	delete-old-versions t
+	kept-old-versions 5
+	kept-new-versions 5
+	backup-directory-alist (list (cons "." (concat user-emacs-directory "backup/"))))
 
   (add-hook 'prog-mode-hook #'hl-line-mode)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
