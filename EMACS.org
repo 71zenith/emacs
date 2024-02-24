@@ -363,7 +363,6 @@ targets."
      '("k" . meow-prev)
      '("<escape>" . ignore))
     (meow-leader-define-key
-
      '("SPC" . execute-extended-command)
      '("a" . embark-act)
      `("b" . ,my-buffer-map)
@@ -404,8 +403,8 @@ targets."
      '("\" . meow-keypad-describe-key)
    '("?" . meow-cheatsheet))
   (meow-normal-define-key
-   '("C-u" . meow-page-up)
-   '("C-d" . meow-page-down)
+   '("s-u" . meow-page-up)
+   '("s-d" . meow-page-down)
    '("C--" . text-scale-decrease)
    '("C-=" . text-scale-increase)
    '("C--" . text-scale-decrease)
@@ -565,19 +564,17 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package rust-mode
   :config
-  (setq rust-format-on-save t)
-  (setq rust-mode-treesitter-derive t))
+  (setq rust-format-on-save t))
 #+end_src
 
 ** eglot
 #+begin_src elisp :tangle "init.el"
 (use-package eglot
   :ensure nil
-  :hook ((rust-ts-mode bash-ts-mode nix-mode) . eglot-ensure)
+  :hook ((rust-mode bash-ts-mode nix-mode) . eglot-ensure)
   :config (add-to-list 'eglot-server-programs
-                       `(rust-ts-mode . ("rust-analyzer" :initializationOptions
+                       `(rust-mode . ("rust-analyzer" :initializationOptions
                                      ( :procMacro (:enable t)
-                                       :imports ( :granularity (:group 'module) :prefix "self")
                                        :cargo ( :buildScripts (:enable t)
                                                 :features "all"))))))
 #+end_src
