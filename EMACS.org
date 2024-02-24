@@ -283,6 +283,14 @@ targets."
   :hook ((eshell-mode . eat-eshell-mode)
          (eshell-mode . eat-eshell-visual-command-mode)))
 
+(defun eshell-toggle ()
+  "Toggle eshell in a new buffer named *eshell-toggle*."
+  (interactive)
+  (if (get-buffer "*eshell-toggle*")
+      (kill-buffer "*eshell-toggle*"))
+  (pop-to-buffer (eshell))
+  (rename-buffer "*eshell-toggle*"))
+
 (use-package eshell-syntax-highlighting
   :hook
   (eshell-mode . eshell-syntax-highlighting-mode))
@@ -394,6 +402,7 @@ targets."
    '("C-S-l" . (lambda () (interactive) (shrink-window-horizontally 5)))
    '("C-S-k" . (lambda () (interactive) (enlarge-window 5)))
    '("C-S-j" . (lambda () (interactive) (shrink-window 5)))
+   '("C-r" . undo-redo)
    '("0" . meow-expand-0)
    '("9" . meow-expand-9)
    '("8" . meow-expand-8)
@@ -537,7 +546,7 @@ targets."
 
   (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
     (add-to-list 'keycast-substitute-alist `(,event nil)))
-  (keycast-mode-line-mode))
+  (keycast-mode-line-mode t))
 #+end_src
 
 ** nix
