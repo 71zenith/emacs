@@ -29,8 +29,8 @@
              (setq vc-handled-backends vc-handled-backends-old)
              (setq gc-cons-threshold (* 2 1000 1000))
              (setq gc-cons-percentage 0.1)
-             (set-frame-parameter nil 'alpha-background 0)
-             (add-to-list 'default-frame-alist '(alpha-background . 0)))
+             (set-frame-parameter nil 'alpha-background 90)
+             (add-to-list 'default-frame-alist '(alpha-background . 90)))
           t)
 
 (add-hook 'emacs-startup-hook
@@ -328,6 +328,16 @@ targets."
       (define-key map (kbd "p") #'previous-buffer)
       (define-key map (kbd "s") #'scratch-buffer)
       map))
+  (defvar my-eglot-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "d") #'xref-find-definitions)
+      (define-key map (kbd "r") #'xref-find-references)
+      (define-key map (kbd "i") #'eglot-find-implementation)
+      (define-key map (kbd "f") #'consult-flymake)
+      (define-key map (kbd "a") #'eglot-format-buffer)
+      (define-key map (kbd "c") #'eglot-code-actions)
+      (define-key map (kbd "r") #'eglot-rename)
+      map))
   (defvar my-window-map
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "s") #'split-window-below)
@@ -363,13 +373,12 @@ targets."
      '("E" . eshell)
      '("f" . find-file)
      '("F" . consult-fd)
-     '("g" . consult-ripgrep)
+     '("n" . consult-ripgrep)
      `("h" . ,my-help-map)
-     '("i" . insert-char)
+     `("i" . ,my-eglot-map)
      '("j" . consult-imenu)
      (cons "l" popwin:keymap)
      '("k" . magit)
-     '("n" . format-all-region-or-buffer)
      '("p" . project-find-file)
      '("P" . project-switch-project)
      '("Q" . save-buffers-kill-emacs)
@@ -487,16 +496,6 @@ targets."
 (use-package tempel-collection)
 #+end_src
 
-** format
-#+begin_src elisp :tangle "init.el"
-(use-package format-all
-  :hook (prog-mode . format-all-mode)
-  :config
-  (setq-default format-all-formatters
-                '(("Nix" (nixfmt))
-                  ("Shell" (shfmt "-i" "4" "-ci")))))
-#+end_src
-
 ** tree sitter
 #+begin_src elisp :tangle "init.el"
 (use-package treesit-auto
@@ -555,9 +554,25 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package nix-mode
   :mode "\\.nix\\'")
+#+end_src
 
-(use-package nix-ts-mode
- :mode "\\.nix\\'")
+** rust
+#+begin_src elisp :tangle "init.el"
+(use-package rust-mode
+  :init
+  (setq rust-mode-treesitter-derive t))
+#+end_src
+
+** eglot
+#+begin_src elisp :tangle "init.el"
+(use-package eglot
+  :ensure nil
+  :hook ((rust-mode bash-ts-mode nix-mode) . eglot-ensure)
+  :config (add-to-list 'eglot-server-programs
+                       `(rust-mode . ("rust-analyzer" :initializationOptions
+                                     ( :procMacro (:enable t)
+                                       :cargo ( :buildScripts (:enable t)
+                                                :features "all"))))))
 #+end_src
 
 ** git
@@ -623,7 +638,7 @@ targets."
         (t
          :default-family "Iosevka Comfy"
          :default-weight regular
-         :default-height 190
+         :default-height 180
 
          :fixed-pitch-family nil
          :fixed-pitch-weight nil
