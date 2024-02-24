@@ -99,8 +99,7 @@
 (elpaca-wait)
 #+end_src
 
-** completion
-*** vertico
+** vertico
 #+begin_src elisp :tangle "init.el"
 (use-package vertico
   :bind (:map vertico-map
@@ -115,7 +114,7 @@
   (vertico-mode t))
 #+end_src
 
-*** marginalia
+** marginalia
 #+begin_src elisp :tangle "init.el"
 (use-package marginalia
   :config
@@ -124,7 +123,7 @@
   (marginalia-mode t))
 #+end_src
 
-*** corfu
+** corfu
 #+begin_src elisp :tangle "init.el"
 (use-package corfu
   :bind (:map corfu-map
@@ -151,7 +150,7 @@
   (corfu-popupinfo-mode))
 #+end_src
 
-*** cape
+** cape
 #+begin_src elisp :tangle "init.el"
 (use-package cape
   :config
@@ -163,7 +162,7 @@
   (add-to-list 'completion-at-point-functions #'cape-emoji))
 #+end_src
 
-*** orderless
+** orderless
 #+begin_src elisp :tangle "init.el"
 (use-package orderless
   :config
@@ -172,8 +171,7 @@
         completion-category-overrides '((file (styles partial-completion)))))
 #+end_src
 
-** act on everything
-*** consult
+** consult
 #+begin_src elisp :tangle "init.el"
 (use-package consult
   :config
@@ -193,7 +191,7 @@
   :after vertico)
 #+end_src
 
-*** embark
+** embark
 #+begin_src elisp :tangle "init.el"
 (use-package embark
   :bind (("M-e" . embark-act))
@@ -242,7 +240,7 @@ targets."
   (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
 
-** spell
+** jinx
 #+begin_src elisp :tangle "init.el"
 (use-package jinx)
 #+end_src
@@ -344,11 +342,13 @@ targets."
     (meow-motion-overwrite-define-key
      '("j" . meow-next)
      '("k" . meow-prev)
+     '("C-u" . meow-page-up)
+     '("C-d" . meow-page-down)
      '("<escape>" . ignore))
     (meow-leader-define-key
      '("SPC" . execute-extended-command)
      '("a" . embark-act)
-	 `("b" . ,my-buffer-map)
+     `("b" . ,my-buffer-map)
      `("c" . ,my-git-gutter-map)
      '("d" . dired-jump)
      '("e" . embark-act)
@@ -359,12 +359,10 @@ targets."
      `("h" . ,my-help-map)
      '("i" . insert-char)
      '("j" . consult-imenu)
-     '("k" . comment-or-uncomment-region)
      (cons "l" popwin:keymap)
-     '("m" . magit)
+     '("k" . magit)
      '("n" . format-all-region-or-buffer)
-     '("o" . indent-region)
-     '("p" . consult-project-buffer)
+     '("p" . project-find-file)
      '("P" . project-switch-project)
      '("Q" . save-buffers-kill-emacs)
      '("r" . consult-recent-file)
@@ -407,7 +405,9 @@ targets."
    '("2" . meow-expand-2)
    '("1" . meow-expand-1)
    '("-" . negative-argument)
-   '(";" . meow-reverse)
+   '("=" . meow-indent)
+   '("V" . meow-comment)
+   '("x" . meow-reverse)
    '("," . meow-inner-of-thing)
    '("." . meow-bounds-of-thing)
    '("[" . meow-beginning-of-thing)
@@ -461,11 +461,12 @@ targets."
     (setq meow-use-clipboard t)
     (setq meow-goto-line-function 'consult-goto-line)
     (setq meow-use-dynamic-face-color nil)
+    (setq meow-keypad-start-keys nil)
     (add-to-list 'meow-mode-state-list '(eshell-mode . insert))
     (meow-global-mode 1))
-#+end_src
-** code
-*** snippets
+      #+end_src
+
+** tempel
 #+begin_src elisp :tangle "init.el"
 (use-package tempel
   :config
@@ -477,27 +478,53 @@ targets."
 (use-package tempel-collection)
 #+end_src
 
-*** tree sitter
+** format
+#+begin_src elisp :tangle "init.el"
+(use-package format-all
+  :hook (prog-mode . format-all-mode)
+  :config
+  (setq-default format-all-formatters
+                '(("Nix" (nixfmt))
+                  ("Shell" (shfmt "-i" "4" "-ci")))))
+#+end_src
+
+** tree sitter
 #+begin_src elisp :tangle "init.el"
 (use-package treesit-auto
   :config
   (setq treesit-auto-install 't)
   (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+  (global-treesit-auto-mode)
+  (setq treesit-language-source-alist
+      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+        (css "https://github.com/tree-sitter/tree-sitter-css")
+        (html "https://github.com/tree-sitter/tree-sitter-html")
+        (nix "https://github.com/nix-community/tree-sitter-nix")
+        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+        (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
+        (json "https://github.com/tree-sitter/tree-sitter-json")
+        (make "https://github.com/alemuller/tree-sitter-make")
+        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+        (python "https://github.com/tree-sitter/tree-sitter-python")
+        (toml "https://github.com/tree-sitter/tree-sitter-toml")
+        (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
+        (java "https://github.com/tree-sitter/tree-sitter-java")
+        (rust "https://github.com/tree-sitter/tree-sitter-rust"))))
 #+end_src
 
-** quality of life
-*** modeline
+** modeline
 #+begin_src elisp :tangle "init.el"
 (use-package spacious-padding
   :config
   (setq spacious-padding-widths
-      '( :internal-border-width 10
-         :header-line-width 2
-         :mode-line-width 1
-         :tab-width 2
-         :right-divider-width 30
-         :scroll-bar-width 2))
+	'( :internal-border-width 10
+           :header-line-width 2
+           :mode-line-width 1
+           :tab-width 2
+           :right-divider-width 30
+           :scroll-bar-width 2))
   (spacious-padding-mode t))
 
 (use-package keycast
@@ -513,7 +540,16 @@ targets."
   (keycast-mode-line-mode))
 #+end_src
 
-*** git
+** nix
+#+begin_src elisp :tangle "init.el"
+(use-package nix-mode
+  :mode "\\.nix\\'")
+
+(use-package nix-ts-mode
+ :mode "\\.nix\\'")
+#+end_src
+
+** git
 #+begin_src elisp :tangle "init.el"
 (use-package magit)
 
@@ -526,7 +562,7 @@ targets."
    '(git-gutter:deleted-sign "▼ ")))
 #+end_src
 
-*** random
+** ui
 #+begin_src elisp :tangle "init.el"
 (use-package pulsar
   :config
@@ -537,18 +573,6 @@ targets."
   (setq goggles-pulse t)
   (goggles-mode t))
 
-(use-package seq)
-
-(use-package eldoc
-  :diminish (eldoc-mode))
-
-(use-package eldoc-box
-  :diminish (eldoc-box-hover-at-point-mode)
-  :after eldoc  
-  :hook (prog-mode . eldoc-box-hover-at-point-mode))
-
-(use-package helpful)
-
 (use-package prism
   :hook ((org-mode prog-mode) . prism-mode))
 
@@ -557,12 +581,37 @@ targets."
   :config
   (setq which-key-idle-delay 0.2
         which-key-idle-secondary-delay 0.02)
-  (setq which-key-prefix-prefix "◉")
   (which-key-setup-minibuffer)
   (which-key-mode))
-#+end_Src
+#+end_src
 
+** help
+#+begin_src elisp :tangle init.el
+(use-package seq)
 
+(use-package eldoc
+  :diminish (eldoc-mode))
+
+(use-package eldoc-box
+  :diminish (eldoc-box-hover-at-point-mode)
+  :after eldoc
+  :hook (prog-mode . eldoc-box-hover-at-point-mode))
+
+(use-package helpful)
+#+end_src
+
+** dired
+#+begin_src elisp :tangle "init.el"
+(use-package dired
+  :ensure nil
+  :config
+  (setq dired-listing-switches
+        "-AGFhlv --group-directories-first --time-style=long-iso"))
+
+(use-package async
+  :config
+  (dired-async-mode t))
+#+end_src
 ** emacs
 #+begin_src elisp :tangle "init.el"
 (use-package emacs
