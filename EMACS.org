@@ -146,11 +146,6 @@
   (global-corfu-mode)
   (corfu-history-mode)
   (corfu-popupinfo-mode))
-
-(use-package kind-icon
-  :after corfu
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
 
 *** cape
@@ -380,9 +375,22 @@ targets."
   '("'" . repeat)
   '("<escape>" . ignore)))
   (meow-setup)
-  (meow-global-mode 1))
-#+end_src
+  (meow-leader-define-keys
+ ;; state
+ 'normal
 
+ ;; bind to a command
+ '("a" . meow-append)
+
+ ;; bind to a keymap
+ (cons "h" help-map)
+
+ ;; bind to a keybinding
+ '("x" . "C-x C-x"))
+  (setq meow-use-clipboard t)
+  (meow-global-mode 1))
+
+#+end_src
 ** code
 *** snippets
 #+begin_src elisp :tangle "init.el"
@@ -532,7 +540,7 @@ targets."
           (?\" . ?\")
           (?\{ . ?\})))
   
-  (set-face-attribute 'default nil :height 200)
+  (set-face-attribute 'default nil :height 190)
 
   (setq create-lockfiles nil
 	    make-backup-files nil
@@ -549,6 +557,7 @@ targets."
   (recentf-mode t)
   (save-place-mode t)
   (indent-tabs-mode nil)
+  (display-time-mode t)
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
   (savehist-mode t)
