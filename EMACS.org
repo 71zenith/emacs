@@ -1,5 +1,5 @@
-#+TITLE: emacsy-emacs config
-#+AUTHOR: zen
+#+TITLE: イーマックス コンフィッグ
+#+AUTHOR: ゼン
 #+EMAIL: 71zenith@proton.me
 
 * early-init.el
@@ -12,12 +12,11 @@
               use-package-always-ensure t)
 
 (defvar native-comp-async-report-warnings-errors 'silent)
-
 (defvar file-name-handler-alist-old file-name-handler-alist)
 (defvar vc-handled-backends-old vc-handled-backends)
 
 (setq file-name-handler-alist nil
-     vc-handled-backends nil
+      vc-handled-backends nil
       gc-cons-percentage 0.5
       gc-cons-threshold most-positive-fixnum)
 
@@ -167,6 +166,13 @@
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
   (global-set-key [remap switch-to-buffer] 'consult-buffer)
+  (global-set-key [remap yank-pop] 'consult-yank-pop)
+  (global-set-key [remap Info-search] 'consult-info)
+  (global-set-key [remap bookmark-jump] 'consult-bookmark)
+  (global-set-key [remap switch-to-buffer-other-tab] 'consult-buffer-other-tab)
+  (global-set-key [remap switch-to-buffer-other-frame] 'consult-buffer-other-frame)
+  (global-set-key [remap switch-to-buffer-other-window] 'consult-buffer-other-window)
+  (global-set-key [remap project-switch-to-buffer] 'consult-project-buffer)
   (global-set-key [remap isearch-forward] 'consult-line)
   (global-set-key [remap isearch-backward] 'consult-line)
   :after vertico)
@@ -225,6 +231,11 @@ targets."
 (use-package jinx)
 #+end_src
 
+** diminish
+#+begin_src elisp :tangle "init.el"
+(use-package diminish)
+#+end_src
+
 ** org
 #+begin_src elisp :tangle "init.el"
 (use-package org-modern
@@ -241,6 +252,7 @@ targets."
         org-hide-emphasis-markers t
         org-pretty-entities t
         org-ellipsis "…")
+  :diminish (org-indent-mode visual-line-mode)
   :hook ((org-mode . org-modern-mode)
          (org-mode . hl-line-mode)
          (org-mode . visual-line-mode)
@@ -349,7 +361,7 @@ targets."
   '("<escape>" . ignore)))
   (meow-setup)
   (meow-global-mode 1))
-#+end_src  
+#+end_src
 
 ** code
 *** snippets
@@ -377,11 +389,21 @@ targets."
 *** modeline
 #+begin_src elisp :tangle "init.el"
 (use-package spacious-padding
-  :config (spacious-padding-mode))
+  :config
+  (setq spacious-padding-widths
+      '( :internal-border-width 10
+         :header-line-width 2
+         :mode-line-width 1
+         :tab-width 2
+         :right-divider-width 30
+         :scroll-bar-width 2))
+  (spacious-padding-mode t))
 
 (use-package keycast
   :config
   (setq keycast-mode-line-format "%2s%k%c%R ")
+  (setq keycast-mode-line-remove-tail-elements nil)
+  (setq keycast-mode-line-insert-after 'mode-line-end-spaces)
   (dolist (input '(self-insert-command org-self-insert-command))
     (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
 
@@ -405,6 +427,7 @@ targets."
 (use-package magit)
 
 (use-package git-gutter
+  :diminish (global-git-gutter-mode)
   :config (global-git-gutter-mode t)
   (custom-set-variables
    '(git-gutter:modified-sign "● ")
@@ -414,7 +437,6 @@ targets."
 
 *** random
 #+begin_src elisp :tangle "init.el"
-(use-package diminish)
 (use-package pulsar
   :config
   (pulsar-global-mode t))
@@ -424,26 +446,26 @@ targets."
   (setq goggles-pulse t)
   (goggles-mode t))
 
-(use-package savehist
-  :ensure nil
-  :config (savehist-mode t))
-
 (use-package seq)
 
-(use-package eldoc)
+(use-package eldoc
+  :diminish (eldoc-mode))
+
 (use-package eldoc-box
+  :diminish (eldoc-box-hover-at-point-mode)
   :after eldoc
   :hook (prog-mode . eldoc-box-hover-at-point-mode))
 
 (use-package helpful)
 
 (use-package prism
-  :config (prism-mode))
+  :hook ((org-mode prog-mode) . prism-mode))
 
 (use-package which-key
+  :diminish (which-key-mode)
   :config
-  (setq which-key-idle-delay 0.3
-        which-key-idle-secondary-delay 0.05)
+  (setq which-key-idle-delay 0.2
+        which-key-idle-secondary-delay 0.02)
   (which-key-mode))
 #+end_Src
 
@@ -466,8 +488,10 @@ targets."
         line-move-visual nil
         initial-scratch-message nil
         indicate-empty-lines t
+	    vc-make-backup-files nil
         confirm-kill-emacs nil
         show-trailing-whitespace t
+	    create-lockfiles nil
         inhibit-startup-screen t
         display-time-format "%H:%M"
         display-time-default-load-average nil
@@ -479,20 +503,25 @@ targets."
         '(
           (?\" . ?\")
           (?\{ . ?\})))
+  
   (fset 'yes-or-no-p 'y-or-n-p)
-  (set-face-attribute 'default nil :height 200)
-  (prettify-symbols-mode t)
-  (global-auto-revert-mode t)
-  (setq backup-directory-alist `(("." . ,(locate-user-emacs-file "backups")))
-        vc-make-backup-files nil
-        create-lockfiles nil)
+  (set-face-attribute 'default nil :height 230)
+
+  ;; `modes' that don't actively make my life worse
   (add-hook 'prog-mode-hook #'hl-line-mode)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
   (electric-pair-mode t)
   (recentf-mode t)
   (save-place-mode t)
   (indent-tabs-mode nil)
-  (window-divider-mode nil)
+  (prettify-symbols-mode t)
+  (global-auto-revert-mode t)
+  (savehist-mode t)
+
+  
+  (defadvice split-window (after split-window-after activate)
+    (other-window 1))
+  
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
                   (replace-regexp-in-string
@@ -502,10 +531,6 @@ targets."
           (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
-  (defadvice split-window (after split-window-after activate)
-    (other-window 1))
-  (set-display-table-slot standard-display-table
-                          'truncation (make-glyph-code ?… 'default))
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
