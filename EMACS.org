@@ -613,6 +613,49 @@ targets."
 (use-package helpful)
 #+end_src
 
+** fontaine
+#+begin_src elisp :tangle "init.el"
+(use-package fontaine
+  :config
+  (setq fontaine-set-preset 'regular
+        fontaine-presets
+      '((regular)
+        (t
+         :default-family "Iosevka Comfy"
+         :default-weight regular
+         :default-height 190
+
+         :fixed-pitch-family nil
+         :fixed-pitch-weight nil
+         :fixed-pitch-height 1.0
+
+         :fixed-pitch-serif-family nil
+         :fixed-pitch-serif-weight nil
+         :fixed-pitch-serif-height 1.0
+
+         :mode-line-active-family "Google Sans"
+         :mode-line-active-weight nil
+         :mode-line-active-height 210
+
+         :mode-line-inactive-family "Google Sans"
+         :mode-line-inactive-weight nil
+         :mode-line-inactive-height 210
+
+         :line-number-family nil
+         :line-number-weight nil
+         :line-number-height 0.9
+
+         :bold-family nil
+         :bold-weight bold
+
+         :italic-family nil
+         :italic-slant italic
+
+         :line-spacing nil)))
+  (fontaine-mode t)
+  (fontaine-set-preset 'regular))
+#+end_src
+
 ** dired
 #+begin_src elisp :tangle "init.el"
 (use-package dired
@@ -669,12 +712,8 @@ targets."
           (?\" . ?\")
           (?\{ . ?\})))
   
-  (set-face-attribute 'default nil :family "Iosevka Comfy" :height 190)
-
   (define-fringe-bitmap 'right-curly-arrow
     [#b11111111
-     #b00000001
-     #b00000001
      #b00000001
      #b00000001
      #b00000001
@@ -682,8 +721,6 @@ targets."
      #b00000001])
   (define-fringe-bitmap 'left-curly-arrow
     [#b1000000
-     #b1000000
-     #b1000000
      #b1000000
      #b1000000
      #b1000000
