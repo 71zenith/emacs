@@ -18,6 +18,9 @@
 (setq file-name-handler-alist nil
       vc-handled-backends nil
       gc-cons-percentage 0.5
+      highlight-nonselected-windows nil
+      fast-but-imprecise-scrolling t
+      idle-update-delay 1.0
       gc-cons-threshold most-positive-fixnum)
 
 (add-hook 'after-init-hook
@@ -29,6 +32,14 @@
              (set-frame-parameter nil 'alpha-background 90)
              (add-to-list 'default-frame-alist '(alpha-background . 90)))
           t)
+
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs ready in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
 
 (setq-default default-frame-alist
               '((tool-bar-lines . 0)
@@ -135,6 +146,11 @@
   (global-corfu-mode)
   (corfu-history-mode)
   (corfu-popupinfo-mode))
+
+(use-package kind-icon
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
 
 *** cape
@@ -170,6 +186,7 @@
   (global-set-key [remap Info-search] 'consult-info)
   (global-set-key [remap bookmark-jump] 'consult-bookmark)
   (global-set-key [remap switch-to-buffer-other-tab] 'consult-buffer-other-tab)
+  (global-set-key [remap recentf] 'consult-recent-file)
   (global-set-key [remap switch-to-buffer-other-frame] 'consult-buffer-other-frame)
   (global-set-key [remap switch-to-buffer-other-window] 'consult-buffer-other-window)
   (global-set-key [remap project-switch-to-buffer] 'consult-project-buffer)
@@ -181,6 +198,7 @@
 *** embark
 #+begin_src elisp :tangle "init.el"
 (use-package embark
+  :bind (("M-e" . embark-act))
   :config
   (defun embark-which-key-indicator ()
     "An embark indicator that displays keymaps using which-key.
@@ -258,6 +276,7 @@ targets."
          (org-mode . visual-line-mode)
          (org-mode . org-indent-mode)))
 #+end_src
+
 ** eshell
 #+begin_src elisp :tangle "init.el"
 (setq eshell-highlight-prompt t
@@ -272,6 +291,7 @@ targets."
   :hook
   (eshell-mode . eshell-syntax-highlighting-mode))
 #+end_src
+
 ** meow
 #+begin_src elisp :tangle "init.el"
 (use-package meow
@@ -419,6 +439,7 @@ targets."
   (popwin-mode 1)
   (global-set-key (kbd "C-z") popwin:keymap)
   (push '("*helpful*" :height 7) popwin:special-display-config)
+  (push '("*tree-sit*" :height 7 :noselect t) popwin:special-display-config)
   (push '("*eshell*" :height 7) popwin:special-display-config))
 #+end_src
 
@@ -427,7 +448,7 @@ targets."
 (use-package magit)
 
 (use-package git-gutter
-  :diminish (global-git-gutter-mode)
+  :diminish (git-gutter-mode)
   :config (global-git-gutter-mode t)
   (custom-set-variables
    '(git-gutter:modified-sign "● ")
@@ -466,6 +487,11 @@ targets."
   :config
   (setq which-key-idle-delay 0.2
         which-key-idle-secondary-delay 0.02)
+  (setq which-key-prefix-prefix "◉ ")
+  (setq which-key-sort-order 'which-key-key-order-alpha
+        which-key-min-display-lines 4
+        which-key-max-display-columns nil)
+  (which-key-setup-minibuffer)
   (which-key-mode))
 #+end_Src
 
@@ -485,13 +511,15 @@ targets."
         next-screen-context-lines 5
         tab-always-indent 'complete
         comment-multi-line nil
+	    vc-follow-symlinks t
         line-move-visual nil
         initial-scratch-message nil
         indicate-empty-lines t
 	    vc-make-backup-files nil
         confirm-kill-emacs nil
         show-trailing-whitespace t
-	    create-lockfiles nil
+	    use-short-answers t
+	    initial-major-mode 'org-mode
         inhibit-startup-screen t
         display-time-format "%H:%M"
         display-time-default-load-average nil
@@ -504,10 +532,17 @@ targets."
           (?\" . ?\")
           (?\{ . ?\})))
   
-  (fset 'yes-or-no-p 'y-or-n-p)
-  (set-face-attribute 'default nil :height 230)
+  (set-face-attribute 'default nil :height 200)
 
-  ;; `modes' that don't actively make my life worse
+  (setq create-lockfiles nil
+	    make-backup-files nil
+	    version-control t
+	    backup-by-copying t
+	    delete-old-versions t
+	    kept-old-versions 5
+	    kept-new-versions 5
+	    backup-directory-alist (list (cons "." (concat user-emacs-directory "backup/"))))
+
   (add-hook 'prog-mode-hook #'hl-line-mode)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
   (electric-pair-mode t)
@@ -518,7 +553,6 @@ targets."
   (global-auto-revert-mode t)
   (savehist-mode t)
 
-  
   (defadvice split-window (after split-window-after activate)
     (other-window 1))
   
