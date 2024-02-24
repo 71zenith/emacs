@@ -29,8 +29,8 @@
              (setq vc-handled-backends vc-handled-backends-old)
              (setq gc-cons-threshold (* 2 1000 1000))
              (setq gc-cons-percentage 0.1)
-             (set-frame-parameter nil 'alpha-background 90)
-             (add-to-list 'default-frame-alist '(alpha-background . 90)))
+             (set-frame-parameter nil 'alpha-background 95)
+             (add-to-list 'default-frame-alist '(alpha-background . 95)))
           t)
 
 (add-hook 'emacs-startup-hook
@@ -303,6 +303,7 @@ targets."
   (popwin-mode 1)
   (push '("*helpful*" :height 7) popwin:special-display-config)
   (push '("*tree-sit*" :height 7 :noselect t) popwin:special-display-config)
+  (push '("*compilation*" :height 7) popwin:special-display-config)
   (push '("*eshell-toggle*" :height 7) popwin:special-display-config))
 #+end_src
 
@@ -360,10 +361,9 @@ targets."
     (meow-motion-overwrite-define-key
      '("j" . meow-next)
      '("k" . meow-prev)
-     '("C-u" . meow-page-up)
-     '("C-d" . meow-page-down)
      '("<escape>" . ignore))
     (meow-leader-define-key
+
      '("SPC" . execute-extended-command)
      '("a" . embark-act)
      `("b" . ,my-buffer-map)
@@ -389,7 +389,7 @@ targets."
      '(":" . eval-expression)
      '("/" . consult-line)
      '("v" . consult-yank-pop)
-     '("V" . eval-region) 
+     '("V" . eval-region)
      `("w" . ,my-window-map)
      '("1" . meow-digit-argument)
      '("2" . meow-digit-argument)
@@ -404,6 +404,8 @@ targets."
      '("\" . meow-keypad-describe-key)
    '("?" . meow-cheatsheet))
   (meow-normal-define-key
+   '("C-u" . meow-page-up)
+   '("C-d" . meow-page-down)
    '("C--" . text-scale-decrease)
    '("C-=" . text-scale-increase)
    '("C--" . text-scale-decrease)
@@ -411,7 +413,7 @@ targets."
    '("C-S-l" . (lambda () (interactive) (shrink-window-horizontally 5)))
    '("C-S-k" . (lambda () (interactive) (enlarge-window 5)))
    '("C-S-j" . (lambda () (interactive) (shrink-window 5)))
-   '("C-r" . undo-redo)
+   '("C-r" . undo-fu-only-redo)
    '("0" . meow-expand-0)
    '("9" . meow-expand-9)
    '("8" . meow-expand-8)
@@ -463,7 +465,7 @@ targets."
    '("R" . meow-swap-grab)
    '("s" . meow-kill)
    '("t" . meow-till)
-   '("u" . meow-undo)
+   '("u" . undo-fu-only-undo)
    '("U" . meow-undo-in-selection)
    '("v" . meow-visit)
    '("w" . meow-mark-word)
@@ -482,18 +484,22 @@ targets."
     (setq meow-keypad-start-keys nil)
     (add-to-list 'meow-mode-state-list '(eshell-mode . insert))
     (meow-global-mode 1))
-      #+end_src
+#+end_src
 
-** tempel
+** yasnippet
 #+begin_src elisp :tangle "init.el"
-(use-package tempel
-  :config
-  (defun tempel-setup-capf ()
-    (setq-local completion-at-point-functions
-                (cons #'tempel-expand
-                      completion-at-point-functions)))
-  (add-hook 'org-mode-hook 'tempel-setup-capf))
-(use-package tempel-collection)
+(use-package yasnippet-snippets)
+(use-package yasnippet
+  :diminish (yas-minor-mode)
+  :hook ((prog-mode org-mode) . yas-minor-mode))
+#+end_src
+
+** undo-fu
+#+begin_src elisp :tangle "init.el"
+(use-package undo-fu)
+
+(use-package undo-fu-session
+  :config (undo-fu-session-global-mode t))
 #+end_src
 
 ** tree sitter
@@ -529,7 +535,7 @@ targets."
 (use-package spacious-padding
   :config
   (setq spacious-padding-widths
-	'( :internal-border-width 10
+        '( :internal-border-width 10
            :header-line-width 2
            :mode-line-width 1
            :tab-width 2
@@ -552,14 +558,14 @@ targets."
 
 ** nix
 #+begin_src elisp :tangle "init.el"
-(use-package nix-mode
-  :mode "\\.nix\\'")
+(use-package nix-mode)
 #+end_src
 
 ** rust
 #+begin_src elisp :tangle "init.el"
 (use-package rust-mode
-  :init
+  :config
+  (setq rust-format-on-save t)
   (setq rust-mode-treesitter-derive t))
 #+end_src
 
@@ -567,10 +573,11 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package eglot
   :ensure nil
-  :hook ((rust-mode bash-ts-mode nix-mode) . eglot-ensure)
+  :hook ((rust-ts-mode bash-ts-mode nix-mode) . eglot-ensure)
   :config (add-to-list 'eglot-server-programs
-                       `(rust-mode . ("rust-analyzer" :initializationOptions
+                       `(rust-ts-mode . ("rust-analyzer" :initializationOptions
                                      ( :procMacro (:enable t)
+                                       :imports ( :granularity (:group 'module) :prefix "self")
                                        :cargo ( :buildScripts (:enable t)
                                                 :features "all"))))))
 #+end_src
@@ -603,6 +610,12 @@ targets."
   :hook ((org-mode prog-mode) . prism-mode))
 
 (use-package rainbow-mode :commands (rainbow-mode))
+
+(use-package poke-line
+  :config
+  (setq poke-line-bar-length 25)
+  (poke-line-global-mode t)
+  (poke-line-set-random-pokemon))
 
 (use-package which-key
   :diminish (which-key-mode)
@@ -677,7 +690,7 @@ targets."
   :hook ((dired-mode . hl-line-mode))
   :ensure nil
   :bind (:map dired-mode-map
-	          ("l" . dired-find-file)
+                  ("l" . dired-find-file)
               ("h" . dired-up-directory))
   :config
   (require 'dired-x)
@@ -726,7 +739,7 @@ targets."
         '(
           (?\" . ?\")
           (?\{ . ?\})))
-  
+
   (define-fringe-bitmap 'right-curly-arrow
     [#b11111111
      #b00000001
@@ -741,7 +754,7 @@ targets."
      #b1000000
      #b1000000
      #b1111111])
-  
+
   (setq create-lockfiles nil
         make-backup-files nil
         version-control t
@@ -764,7 +777,7 @@ targets."
 
   (defadvice split-window (after split-window-after activate)
     (other-window 1))
-  
+
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
                   (replace-regexp-in-string
