@@ -401,7 +401,7 @@ targets."
    "v" '(consult-yank-pop :which-key "clipboard")
    "V" '(eval-region :which-key "eval elisp")
    "w" `(,my-window-map :which-key "WINDOW")
-   "x" '(consult-flymake :which-key "flymake")
+   "" '(consult-flymake :which-key "flymake")
    "z" '(dirvish-side :which-key "dirvish side")
    "SPC" '(execute-extended-command :which-key "M-x")
    ":" '(eval-expression :which-key "M-:")

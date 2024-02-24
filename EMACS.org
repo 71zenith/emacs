@@ -41,6 +41,9 @@
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
 
+(add-to-list 'default-frame-alist
+             '(background-color . "#161616"))
+
 (setq-default default-frame-alist
               '((tool-bar-lines . 0)
                 (menu-bar-lines . 0)
@@ -287,32 +290,83 @@ targets."
   (eshell-mode . eshell-syntax-highlighting-mode))
 #+end_src
 
+*** popwin
+#+begin_src elisp :tangle "init.el"
+(use-package popwin
+  :config
+  (popwin-mode 1)
+  (global-set-key (kbd "C-z") popwin:keymap)
+  (push '("*helpful*" :height 7) popwin:special-display-config)
+  (push '("*tree-sit*" :height 7 :noselect t) popwin:special-display-config)
+  (push '("*eshell*" :height 7) popwin:special-display-config))
+#+end_src
+
 ** meow
 #+begin_src elisp :tangle "init.el"
 (use-package meow
- :config
- (defun meow-setup ()
-   (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-  (meow-motion-overwrite-define-key
-   '("j" . meow-next)
-   '("k" . meow-prev)
-   '("<escape>" . ignore))
-  (meow-leader-define-key
-   '("j" . "H-j")
-   '("k" . "H-k")
-   '("1" . meow-digit-argument)
-   '("2" . meow-digit-argument)
-   '("3" . meow-digit-argument)
-   '("4" . meow-digit-argument)
-   '("5" . meow-digit-argument)
-   '("6" . meow-digit-argument)
-   '("7" . meow-digit-argument)
-   '("8" . meow-digit-argument)
-   '("9" . meow-digit-argument)
-   '("0" . meow-digit-argument)
-   '("/" . meow-keypad-describe-key)
+  :config
+  (defvar my-help-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "h") #'helpful-symbol)
+      (define-key map (kbd "o") #'describe-symbol)
+      (define-key map (kbd "k") #'describe-keymap)
+      (define-key map (kbd "K") #'helpful-key)
+      (define-key map (kbd "m") #'describe-mode)
+      (define-key map (kbd "M") #'man)
+      (define-key map (kbd "p") #'helpful-at-point)
+      map))
+  (defun meow-setup ()
+    (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+    (meow-motion-overwrite-define-key
+     '("j" . meow-next)
+     '("k" . meow-prev)
+     '("<escape>" . ignore))
+    (meow-leader-define-key
+     '("j" . "H-j")
+     '("k" . "H-k")
+     '("a" . embark-act)
+     `("b" . ,my-help-map)
+     '("d" . dired-jump)
+     '("e" . embark-act)
+     '("E" . eshell)
+     '("f" . find-file)
+     '("F" . consult-fd)
+     '("g" . consult-ripgrep)
+     '("i" . insert-char)
+     '("j" . consult-imenu)
+     '("k" . comment-or-uncomment-region)
+     '("m" . magit)
+     '("n" . format-all-region-or-buffer)
+     '("o" . indent-region)
+     '("Q" . save-buffers-kill-emacs)
+     '("r" . consult-recent-file)
+     '("s" . save-buffer)
+     '("u" . consult-theme)
+     '(":" . eval-expression)
+     '("/" . consult-line)
+     '("v" . consult-yank-pop)
+     '("V" . eval-region)
+     (cons "p" popwin:keymap)
+     '("1" . meow-digit-argument)
+     '("2" . meow-digit-argument)
+     '("3" . meow-digit-argument)
+     '("4" . meow-digit-argument)
+     '("5" . meow-digit-argument)
+     '("6" . meow-digit-argument)
+     '("7" . meow-digit-argument)
+     '("8" . meow-digit-argument)
+     '("9" . meow-digit-argument)
+     '("0" . meow-digit-argument)
+     '("\" . meow-keypad-describe-key)
    '("?" . meow-cheatsheet))
   (meow-normal-define-key
+   '("C--" . text-scale-decrease)
+   '("C-=" . text-scale-increase)
+   '("C--" . text-scale-decrease)
+   '("C-S-h" . (lambda () (interactive) (enlarge-window-horizontally 5)))
+   '("C-S-l" . (lambda () (interactive) (shrink-window-horizontally 5)))
+   '("C-S-k" . (lambda () (interactive) (enlarge-window 5)))
+   '("C-S-j" . (lambda () (interactive) (shrink-window 5)))
    '("0" . meow-expand-0)
    '("9" . meow-expand-9)
    '("8" . meow-expand-8)
@@ -333,63 +387,53 @@ targets."
    '("A" . meow-open-below)
    '("b" . meow-back-word)
    '("B" . meow-back-symbol)
-  '("c" . meow-change)
-  '("d" . meow-delete)
-  '("D" . meow-backward-delete)
-  '("e" . meow-next-word)
-  '("E" . meow-next-symbol)
-  '("f" . meow-find)
-  '("g" . meow-cancel-selection)
-  '("G" . meow-grab)
-  '("h" . meow-left)
-  '("H" . meow-left-expand)
-  '("i" . meow-insert)
-  '("I" . meow-open-above)
-  '("j" . meow-next)
-  '("J" . meow-next-expand)
-  '("k" . meow-prev)
-  '("K" . meow-prev-expand)
-  '("l" . meow-right)
-  '("L" . meow-right-expand)
-  '("m" . meow-join)
-  '("n" . meow-search)
-  '("o" . meow-block)
-  '("O" . meow-to-block)
-  '("p" . meow-yank)
-  '("q" . meow-quit)
-  '("Q" . meow-goto-line)
-  '("r" . meow-replace)
-  '("R" . meow-swap-grab)
-  '("s" . meow-kill)
-  '("t" . meow-till)
-  '("u" . meow-undo)
-  '("U" . meow-undo-in-selection)
-  '("v" . meow-visit)
-  '("w" . meow-mark-word)
-  '("W" . meow-mark-symbol)
-  '("x" . meow-line)
-  '("X" . meow-goto-line)
-  '("y" . meow-save)
-  '("Y" . meow-sync-grab)
-  '("z" . meow-pop-selection)
-  '("'" . repeat)
-  '("<escape>" . ignore)))
-  (meow-setup)
-  (meow-leader-define-keys
- ;; state
- 'normal
-
- ;; bind to a command
- '("a" . meow-append)
-
- ;; bind to a keymap
- (cons "h" help-map)
-
- ;; bind to a keybinding
- '("x" . "C-x C-x"))
-  (setq meow-use-clipboard t)
-  (meow-global-mode 1))
-
+   '("c" . meow-change)
+   '("d" . meow-delete)
+   '("D" . meow-backward-delete)
+   '("e" . meow-next-word)
+   '("E" . meow-next-symbol)
+   '("f" . meow-find)
+   '("g" . meow-cancel-selection)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-insert)
+   '("I" . meow-open-above)
+   '("j" . meow-next)
+   '("J" . meow-next-expand)
+   '("k" . meow-prev)
+   '("K" . meow-prev-expand)
+   '("l" . meow-right)
+   '("L" . meow-right-expand)
+   '("m" . meow-join)
+   '("n" . meow-search)
+   '("o" . meow-block)
+   '("O" . meow-to-block)
+   '("p" . meow-yank)
+   '("q" . meow-quit)
+   '("Q" . meow-goto-line)
+   '("r" . meow-replace)
+   '("R" . meow-swap-grab)
+   '("s" . meow-kill)
+   '("t" . meow-till)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-visit)
+   '("w" . meow-mark-word)
+   '("W" . meow-mark-symbol)
+   '("x" . meow-line)
+   '("X" . meow-goto-line)
+   '("y" . meow-save)
+   '("Y" . meow-sync-grab)
+   '("z" . meow-pop-selection)
+   '("'" . repeat)
+   '("<escape>" . ignore)))
+    (meow-setup)
+    (setq meow-use-clipboard t)
+    (setq meow-goto-line-function 'consult-goto-line)
+    (setq meow-use-dynamic-face-color nil)
+    (add-to-list 'meow-mode-state-list '(eshell-mode . insert))
+    (meow-global-mode 1))
 #+end_src
 ** code
 *** snippets
@@ -438,17 +482,6 @@ targets."
   (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
     (add-to-list 'keycast-substitute-alist `(,event nil)))
   (keycast-mode-line-mode))
-#+end_src
-
-*** popwin
-#+begin_src elisp :tangle "init.el"
-(use-package popwin
-  :config
-  (popwin-mode 1)
-  (global-set-key (kbd "C-z") popwin:keymap)
-  (push '("*helpful*" :height 7) popwin:special-display-config)
-  (push '("*tree-sit*" :height 7 :noselect t) popwin:special-display-config)
-  (push '("*eshell*" :height 7) popwin:special-display-config))
 #+end_src
 
 *** git
