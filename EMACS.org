@@ -608,6 +608,15 @@ targets."
   (setq dired-listing-switches
         "-AGFhlv --group-directories-first --time-style=long-iso"))
 
+(use-package dired-single
+  :config
+  (define-key dired-mode-map [remap dired-find-file]
+	      'dired-single-buffer)
+  (define-key dired-mode-map [remap dired-mouse-find-file-other-window]
+	      'dired-single-buffer-mouse)
+  (define-key dired-mode-map [remap dired-up-directory]
+	      'dired-single-up-directory))
+
 (use-package async
   :config
   (dired-async-mode t))
@@ -651,32 +660,32 @@ targets."
   (set-face-attribute 'default nil :height 190)
   
   (define-fringe-bitmap 'right-curly-arrow
-    [#b00000000
-     #b00000000
-     #b00000000
-     #b00000000
-     #b01110000
-     #b00010000
-     #b00010000
-     #b00000000])
+    [#b11111111
+     #b00000001
+     #b00000001
+     #b00000001
+     #b00000001
+     #b00000001
+     #b00000001
+     #b00000001])
   (define-fringe-bitmap 'left-curly-arrow
-    [#b00000000
-     #b00001000
-     #b00001000
-     #b00001110
-     #b00000000
-     #b00000000
-     #b00000000
-     #b00000000])
+    [#b1000000
+     #b1000000
+     #b1000000
+     #b1000000
+     #b1000000
+     #b1000000
+     #b1000000
+     #b1111111])
   
   (setq create-lockfiles nil
-	make-backup-files nil
-	version-control t
-	backup-by-copying t
-	delete-old-versions t
-	kept-old-versions 5
-	kept-new-versions 5
-	backup-directory-alist (list (cons "." (concat user-emacs-directory "backup/"))))
+        make-backup-files nil
+        version-control t
+        backup-by-copying t
+        delete-old-versions t
+        kept-old-versions 5
+        kept-new-versions 5
+        backup-directory-alist (list (cons "." (concat user-emacs-directory "backup/"))))
 
   (add-hook 'prog-mode-hook #'hl-line-mode)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
