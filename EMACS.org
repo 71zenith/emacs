@@ -563,7 +563,9 @@ targets."
 ** rust
 #+begin_src elisp :tangle "init.el"
 (use-package rust-mode
+  :mode "\\.rs\\'"
   :config
+  (setq lsp-rust-clippy-preference "on")
   (setq rust-format-on-save t))
 #+end_src
 
@@ -577,6 +579,11 @@ targets."
                                      ( :procMacro (:enable t)
                                        :cargo ( :buildScripts (:enable t)
                                                 :features "all"))))))
+
+(use-package eglot-booster
+  :after eglot
+  :ensure (:host github :repo "jdtsmith/eglot-booster")
+  :config (eglot-booster-mode))
 #+end_src
 
 ** git
@@ -681,6 +688,16 @@ targets."
   (fontaine-set-preset 'regular))
 #+end_src
 
+** server
+#+begin_src elisp :tangle "init.el"
+(use-package server
+  :ensure nil
+  :defer 1
+  :config
+  (unless (server-running-p)
+    (server-start)))  
+#+end_src
+
 ** dired
 #+begin_src elisp :tangle "init.el"
 (use-package dired
@@ -751,7 +768,7 @@ targets."
      #b1000000
      #b1000000
      #b1111111])
-
+  
   (setq create-lockfiles nil
         make-backup-files nil
         version-control t
