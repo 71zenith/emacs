@@ -102,6 +102,7 @@
 ** vertico
 #+begin_src elisp :tangle "init.el"
 (use-package vertico
+  :defer 1
   :bind (:map vertico-map
               ("C-h" . left-char)
               ("C-l" . right-char)
@@ -117,6 +118,7 @@
 ** marginalia
 #+begin_src elisp :tangle "init.el"
 (use-package marginalia
+  :defer 1
   :config
   (setq marginalia-annotators
         '(marginalia-annotators-heavy marginalia-annotators-light nil))
@@ -166,6 +168,11 @@
 #+begin_src elisp :tangle "init.el"
 (use-package orderless
   :config
+  (setq completion-ignore-case t)
+  (setq read-buffer-completion-ignore-case t)
+  (setq echo-keystrokes 0.25)
+  (setq kill-ring-max 60)
+  (setq read-file-name-completion-ignore-case t)
   (setq completion-styles '(orderless basic)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
@@ -194,6 +201,8 @@
 ** embark
 #+begin_src elisp :tangle "init.el"
 (use-package embark
+  :defer t
+  
   :bind (("M-e" . embark-act))
   :config
   (defun embark-which-key-indicator ()
@@ -277,23 +286,32 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (setq eshell-highlight-prompt t
       eshell-hist-ignoredups t
-      eshell-history-size nil)
+      eshell-history-size nil
+      eshell-banner-message ""
+      eshell-prompt-regexp "^[^λ]+ λ ")
+
+(setq eshell-prompt-function (lambda nil
+                               (concat
+                                (propertize (abbreviate-file-name (eshell/pwd)) 'face `(:foreground "#82cfff") )
+                                (propertize " λ" 'face `(:foreground "#ee5396"))
+                                (propertize " "))))
 
 (use-package eat
   :hook ((eshell-mode . eat-eshell-mode)
-         (eshell-mode . eat-eshell-visual-command-mode)))
+         (eshell-mode . eat-eshell-visual-command-mode))
+  :bind (:map eshell-mode-map
+              ("C-j" . eshell-previous-matching-input-from-input)
+              ("C-k" . eshell-next-matching-input-from-input)))
 
-(defun eshell-toggle ()
-  "Toggle eshell in a new buffer named *eshell-toggle*."
-  (interactive)
-  (if (get-buffer "*eshell-toggle*")
-      (kill-buffer "*eshell-toggle*"))
-  (pop-to-buffer (eshell))
-  (rename-buffer "*eshell-toggle*"))
+(use-package eshell-toggle
+  :config
+  (setq eshell-toggle-window-side 'above
+        eshell-toggle-size-fraction 2))
 
 (use-package eshell-syntax-highlighting
   :hook
   (eshell-mode . eshell-syntax-highlighting-mode))
+
 #+end_src
 
 ** popwin
@@ -302,9 +320,9 @@ targets."
   :config
   (popwin-mode 1)
   (push '("*helpful*" :height 7) popwin:special-display-config)
+  (push '("*Help*" :height 7) popwin:special-display-config)
   (push '("*tree-sit*" :height 7 :noselect t) popwin:special-display-config)
-  (push '("*compilation*" :height 7) popwin:special-display-config)
-  (push '("*eshell-toggle*" :height 7) popwin:special-display-config))
+  (push '("*compilation*" :height 7) popwin:special-display-config))
 #+end_src
 
 ** meow
@@ -316,6 +334,8 @@ targets."
       (define-key map (kbd "h") #'helpful-symbol)
       (define-key map (kbd "o") #'describe-symbol)
       (define-key map (kbd "k") #'describe-keymap)
+      (define-key map (kbd "f") #'helpful-function)
+      (define-key map (kbd "v") #'helpful-variable)
       (define-key map (kbd "K") #'helpful-key)
       (define-key map (kbd "m") #'describe-mode)
       (define-key map (kbd "M") #'man)
@@ -369,7 +389,7 @@ targets."
      `("c" . ,my-git-gutter-map)
      '("d" . dired-jump)
      '("e" . embark-act)
-     '("E" . eshell)
+     '("E" . eshell-toggle)
      '("f" . find-file)
      '("F" . consult-fd)
      '("n" . consult-ripgrep)
@@ -380,7 +400,6 @@ targets."
      '("k" . magit)
      '("p" . project-find-file)
      '("P" . project-switch-project)
-     '("Q" . save-buffers-kill-emacs)
      '("r" . consult-recent-file)
      '("s" . save-buffer)
      '("t" . prism-randomize-colors)
@@ -390,6 +409,7 @@ targets."
      '("v" . consult-yank-pop)
      '("V" . eval-region)
      `("w" . ,my-window-map)
+     '("q" . consult-mark)
      '("1" . meow-digit-argument)
      '("2" . meow-digit-argument)
      '("3" . meow-digit-argument)
@@ -485,6 +505,7 @@ targets."
     (meow-global-mode 1))
 #+end_src
 
+** 
 ** yasnippet
 #+begin_src elisp :tangle "init.el"
 (use-package yasnippet-snippets)
@@ -555,6 +576,11 @@ targets."
   (keycast-mode-line-mode t))
 #+end_src
 
+** ement
+#+begin_src elisp :tangle "init.el"
+(use-package ement)
+#+end_src
+
 ** nix
 #+begin_src elisp :tangle "init.el"
 (use-package nix-mode)
@@ -611,15 +637,11 @@ targets."
   (goggles-mode t))
 
 (use-package prism
-  :hook ((org-mode prog-mode) . prism-mode))
+  :hook ((org-mode prog-mode) . prism-mode)
+  :config (setq prism-comments nil))
 
-(use-package rainbow-mode :commands (rainbow-mode))
-
-(use-package poke-line
-  :config
-  (setq poke-line-bar-length 25)
-  (poke-line-global-mode t)
-  (poke-line-set-random-pokemon))
+(use-package rainbow-mode
+  :defer 10)
 
 (use-package which-key
   :diminish (which-key-mode)
@@ -692,10 +714,10 @@ targets."
 #+begin_src elisp :tangle "init.el"
 (use-package server
   :ensure nil
-  :defer 1
+  :defer 2
   :config
   (unless (server-running-p)
-    (server-start)))  
+    (server-start)))
 #+end_src
 
 ** dired
@@ -704,7 +726,7 @@ targets."
   :hook ((dired-mode . hl-line-mode))
   :ensure nil
   :bind (:map dired-mode-map
-                  ("l" . dired-find-file)
+              ("l" . dired-find-file)
               ("h" . dired-up-directory))
   :config
   (require 'dired-x)
@@ -718,6 +740,7 @@ targets."
   :config
   (dired-async-mode t))
 #+end_src
+
 ** emacs
 #+begin_src elisp :tangle "init.el"
 (use-package emacs
@@ -737,7 +760,6 @@ targets."
         line-move-visual nil
         initial-scratch-message nil
         indicate-empty-lines t
-        vc-make-backup-files nil
         confirm-kill-emacs nil
         show-trailing-whitespace t
         use-short-answers t
@@ -755,12 +777,12 @@ targets."
           (?\{ . ?\})))
 
   (define-fringe-bitmap 'right-curly-arrow
-    [#b11111111
-     #b00000001
-     #b00000001
-     #b00000001
-     #b00000001
-     #b00000001])
+    [#b1111111
+     #b0000001
+     #b0000001
+     #b0000001
+     #b0000001
+     #b0000001])
   (define-fringe-bitmap 'left-curly-arrow
     [#b1000000
      #b1000000
@@ -772,6 +794,7 @@ targets."
   (setq create-lockfiles nil
         make-backup-files nil
         version-control t
+        vc-make-backup-files nil
         backup-by-copying t
         delete-old-versions t
         kept-old-versions 5
