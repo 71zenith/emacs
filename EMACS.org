@@ -211,10 +211,21 @@ targets."
 (use-package diminish)
 #+end_src
 
+** uniquify
+#+begin_src elisp :tangle "init.el"
+(use-package uniquify
+  :ensure nil
+  :config
+  (setq uniquify-buffer-name-style 'forward
+        uniquify-separator "/"
+        uniquify-after-kill-buffer-p t
+        uniquify-ignore-buffers-re "^\\*"))
+#+end_src
+
 ** org
 #+begin_src elisp :tangle "init.el"
 (use-package org
-  :ensure nil
+  :elpaca nil
   :config
   (setq org-startup-indented t
         org-edit-src-content-indentation 0
@@ -229,8 +240,7 @@ targets."
         org-pretty-entities t
         org-ellipsis "…")
   :diminish (org-indent-mode visual-line-mode)
-  :hook (
-         (org-mode . hl-line-mode)
+  :hook ((org-mode . hl-line-mode)
          (org-mode . visual-line-mode)
          (org-mode . org-indent-mode)))
 #+end_src
@@ -533,10 +543,7 @@ targets."
   (global-treesit-auto-mode))
 
 (use-package ts-fold
-  :ensure (:host github :repo "emacs-tree-sitter/ts-fold")
-  :config
-  (global-ts-fold-mode)
-  (global-ts-fold-indicators-mode))
+  :ensure (:host github :repo "emacs-tree-sitter/ts-fold"))
 #+end_src
 
 ** lsp-bridge
