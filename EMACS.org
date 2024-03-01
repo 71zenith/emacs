@@ -7,6 +7,7 @@
 (setq-default package-enable-at-startup nil
               use-dialog-box nil
               file-name-handler-alist nil
+              load-prefer-newer t
               inhibit-compacting-font-caches t
               warning-minimum-level :error
               use-package-always-ensure t)
@@ -179,6 +180,7 @@
 ** consult
 #+begin_src elisp :tangle "init.el"
 (use-package consult
+  :defer t
   :config
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
@@ -198,7 +200,8 @@
 
 ** embark
 #+begin_src elisp :tangle "init.el"
-(use-package embark  
+(use-package embark
+  :defer t
   :bind (("M-e" . embark-act))
   :config
   (defun embark-which-key-indicator ()
@@ -245,11 +248,6 @@ targets."
   (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
 
-** jinx
-#+begin_src elisp :tangle "init.el"
-(use-package jinx)
-#+end_src
-
 ** diminish
 #+begin_src elisp :tangle "init.el"
 (use-package diminish)
@@ -293,6 +291,7 @@ targets."
                                 (propertize " "))))
 
 (use-package eat
+  :defer t
   :hook ((eshell-mode . eat-eshell-mode)
          (eshell-mode . eat-eshell-visual-command-mode))
   :bind (:map eshell-mode-map
@@ -300,6 +299,7 @@ targets."
               ("C-k" . eshell-next-matching-input-from-input)))
 
 (use-package eshell-toggle
+  :defer t
   :config
   (setq eshell-toggle-window-side 'above
         eshell-toggle-size-fraction 2))
@@ -319,6 +319,7 @@ targets."
   (push '("*Help*" :height 7) popwin:special-display-config)
   (push '("*Occur*" :height 7) popwin:special-display-config)
   (push '("*tree-sit*" :height 7 :noselect t) popwin:special-display-config)
+  (push '("*eldoc*" :height 7) popwin:special-display-config)
   (push '("*compilation*" :height 7) popwin:special-display-config))
 #+end_src
 
@@ -351,6 +352,7 @@ targets."
       (define-key map (kbd "d") #'xref-find-definitions)
       (define-key map (kbd "r") #'xref-find-references)
       (define-key map (kbd "i") #'eglot-find-implementation)
+      (define-key map (kbd "k") #'eldoc-print-current-symbol-info)
       (define-key map (kbd "f") #'consult-flymake)
       (define-key map (kbd "a") #'eglot-format-buffer)
       (define-key map (kbd "c") #'eglot-code-actions)
@@ -526,24 +528,24 @@ targets."
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode)
   (setq treesit-language-source-alist
-      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-        (css "https://github.com/tree-sitter/tree-sitter-css")
-        (html "https://github.com/tree-sitter/tree-sitter-html")
-        (go "https://github.com/tree-sitter/tree-sitter-go")
-        (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
-        (nix "https://github.com/nix-community/tree-sitter-nix")
-        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-        (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
-        (json "https://github.com/tree-sitter/tree-sitter-json")
-        (make "https://github.com/alemuller/tree-sitter-make")
-        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-        (python "https://github.com/tree-sitter/tree-sitter-python")
-        (toml "https://github.com/tree-sitter/tree-sitter-toml")
-        (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
-        (java "https://github.com/tree-sitter/tree-sitter-java")
-        ( "https://github.com/tree-sitter/tree-sitter-rust"))))
+        '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+          (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+          (css "https://github.com/tree-sitter/tree-sitter-css")
+          (html "https://github.com/tree-sitter/tree-sitter-html")
+          (go "https://github.com/tree-sitter/tree-sitter-go")
+          (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+          (nix "https://github.com/nix-community/tree-sitter-nix")
+          (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+          (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
+          (json "https://github.com/tree-sitter/tree-sitter-json")
+          (make "https://github.com/alemuller/tree-sitter-make")
+          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+          (python "https://github.com/tree-sitter/tree-sitter-python")
+          (toml "https://github.com/tree-sitter/tree-sitter-toml")
+          (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+          (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
+          (java "https://github.com/tree-sitter/tree-sitter-java")
+          (rust "https://github.com/tree-sitter/tree-sitter-rust"))))
 #+end_src
 
 ** modeline
@@ -754,6 +756,7 @@ targets."
         initial-scratch-message nil
         indicate-empty-lines t
         confirm-kill-emacs nil
+        confirm-kill-processes nil
         show-trailing-whitespace t
         use-short-answers t
         initial-major-mode 'org-mode
@@ -768,6 +771,11 @@ targets."
           (?\" . ?\")
           (?\{ . ?\})))
 
+  (setq-default indent-tabs-mode nil
+                tab-width 4)
+  
+  (setq tab-always-indent 'complete)
+
   (define-fringe-bitmap 'right-curly-arrow
     [#b1111111
      #b0000001
@@ -775,6 +783,7 @@ targets."
      #b0000001
      #b0000001
      #b0000001])
+  
   (define-fringe-bitmap 'left-curly-arrow
     [#b1000000
      #b1000000
@@ -783,24 +792,28 @@ targets."
      #b1000000
      #b1111111])
   
-  (setq create-lockfiles nil
-        make-backup-files nil
-        version-control t
-        vc-make-backup-files nil
-        backup-by-copying t
-        delete-old-versions t
-        kept-old-versions 5
-        kept-new-versions 5
-        backup-directory-alist (list (cons "." (concat user-emacs-directory "backup/"))))
+  (prefer-coding-system 'utf-8)
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
   
-  (setq whitespace-style '(face tabs trailing space space-mark indentation lines empty))
+  (setq-default create-lockfiles nil
+                make-backup-files nil
+                version-control t
+                vc-make-backup-files nil
+                backup-by-copying t
+                delete-old-versions t
+                kept-old-versions 5
+                kept-new-versions 5
+                backup-directory-alist (list (cons "." (concat user-emacs-directory "backup/"))))
+
+  (setq whitespace-style '(face tabs trailing lines empty space indentation space-mark tab-mark))
   (add-hook 'prog-mode-hook #'hl-line-mode)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
   (electric-pair-mode t)
   (recentf-mode t)
   (save-place-mode t)
-  (indent-tabs-mode nil)
   (display-time-mode t)
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
