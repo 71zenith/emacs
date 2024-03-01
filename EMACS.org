@@ -225,7 +225,7 @@ targets."
 ** org
 #+begin_src elisp :tangle "init.el"
 (use-package org
-  :elpaca nil
+  :ensure nil
   :config
   (setq org-startup-indented t
         org-edit-src-content-indentation 0
@@ -549,7 +549,7 @@ targets."
 ** lsp-bridge
 #+begin_src elisp :tangle "init.el"
 (use-package lsp-bridge
-  :hook (prog-mode . lsp-bridge-mode)
+  :hook ((prog-mode) . lsp-bridge-mode)
   :ensure (:host github :build (:not elpaca--byte-compile) :files ("*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources") :repo "manateelazycat/lsp-bridge")
   :bind (:map acm-mode-map
               ("TAB"      . acm-select-next)
@@ -562,6 +562,7 @@ targets."
   (setq lsp-bridge-enable-hover-diagnostic t
         lsp-bridge-enable-auto-format-code t
         acm-enable-codeium t
+        lsp-bridge-enable-org-babel t
         acm-backend-search-file-words-enable-fuzzy-match t
         acm-enable-preview t))
 #+end_src
@@ -601,16 +602,6 @@ targets."
 
 ** help
 #+begin_src elisp :tangle init.el
-;; (use-package seq)
-
-;; (use-package eldoc
-;;   :diminish (eldoc-mode))
-
-;; (use-package eldoc-box
-;;   :diminish (eldoc-box-hover-at-point-mode)
-;;   :after eldoc
-;;   :hook (prog-mode . eldoc-box-hover-at-point-mode))
-
 (use-package helpful)
 #+end_src
 
