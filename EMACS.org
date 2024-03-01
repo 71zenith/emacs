@@ -28,7 +28,7 @@
           `(lambda ()
              (setq file-name-handler-alist file-name-handler-alist-old)
              (setq vc-handled-backends vc-handled-backends-old)
-             (setq gc-cons-threshold (* 2 1000 1000))
+             (setq gc-cons-threshold (* 8 1000 1000))
              (setq gc-cons-percentage 0.1)
              (set-frame-parameter nil 'alpha-background 95)
              (add-to-list 'default-frame-alist '(alpha-background . 95)))
@@ -41,9 +41,6 @@
                              (float-time
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
-
-(add-to-list 'default-frame-alist
-             '(background-color . "#161616"))
 
 (setq-default default-frame-alist
               '((tool-bar-lines . 0)
@@ -122,45 +119,6 @@
   (setq marginalia-annotators
         '(marginalia-annotators-heavy marginalia-annotators-light nil))
   (marginalia-mode t))
-#+end_src
-
-** corfu
-#+begin_src elisp :tangle "init.el"
-(use-package corfu
-  :bind (:map corfu-map
-              ("TAB"      . corfu-next)
-              ([tab]      . corfu-next)
-              ("S-TAB"    . corfu-previous)
-              ([backtab]  . corfu-previous))
-  :hook ((prog-mode   . corfu-mode)
-         (shell-mode  . corfu-mode)
-         (eshell-mode . corfu-mode))
-  :config
-  (setq corfu-cycle t
-        corfu-auto t
-        corfu-preview-current 'insert
-        corfu-separator ?\s
-        corfu-quit-at-boundary nil
-        corfu-quit-no-match nil
-        corfu-preselect 'prompt
-        corfu-on-exact-match nil
-        corfu-scroll-margin 5
-        corfu-popupinfo-delay nil)
-  (global-corfu-mode)
-  (corfu-history-mode)
-  (corfu-popupinfo-mode))
-#+end_src
-
-** cape
-#+begin_src elisp :tangle "init.el"
-(use-package cape
-  :config
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-block)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
-  (add-to-list 'completion-at-point-functions #'cape-emoji))
 #+end_src
 
 ** orderless
@@ -255,7 +213,8 @@ targets."
 
 ** org
 #+begin_src elisp :tangle "init.el"
-(use-package org-modern
+(use-package org
+  :ensure nil
   :config
   (setq org-startup-indented t
         org-edit-src-content-indentation 0
@@ -270,7 +229,7 @@ targets."
         org-pretty-entities t
         org-ellipsis "…")
   :diminish (org-indent-mode visual-line-mode)
-  :hook ((org-mode . org-modern-mode)
+  :hook (
          (org-mode . hl-line-mode)
          (org-mode . visual-line-mode)
          (org-mode . org-indent-mode)))
@@ -347,16 +306,17 @@ targets."
       (define-key map (kbd "p") #'previous-buffer)
       (define-key map (kbd "s") #'scratch-buffer)
       map))
-  (defvar my-eglot-map
+  (defvar my-lsp-map
     (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "d") #'xref-find-definitions)
-      (define-key map (kbd "r") #'xref-find-references)
-      (define-key map (kbd "i") #'eglot-find-implementation)
-      (define-key map (kbd "k") #'eldoc-print-current-symbol-info)
-      (define-key map (kbd "f") #'consult-flymake)
-      (define-key map (kbd "a") #'eglot-format-buffer)
-      (define-key map (kbd "c") #'eglot-code-actions)
-      (define-key map (kbd "r") #'eglot-rename)
+      (define-key map (kbd "d") #'lsp-bridge-find-def)
+      (define-key map (kbd "r") #'lsp-bridge-find-references)
+      (define-key map (kbd "i") #'lsp-bridge-find-impl)
+      (define-key map (kbd "k") #'lsp-bridge-popup-documentation)
+      (define-key map (kbd "f") #'lsp-bridge-diagnostic-list)
+      (define-key map (kbd "l") #'lsp-bridge-workspace-list-symbols)
+      (define-key map (kbd "a") #'lsp-bridge-code-format)
+      (define-key map (kbd "c") #'lsp-bridge-code-action)
+      (define-key map (kbd "r") #'lsp-bridge-rename)
       map))
   (defvar my-window-map
     (let ((map (make-sparse-keymap)))
@@ -383,6 +343,7 @@ targets."
      '("<escape>" . ignore))
     (meow-leader-define-key
      '("SPC" . execute-extended-command)
+     `("a" . replace-regexp)
      `("b" . ,my-buffer-map)
      `("c" . ,my-git-gutter-map)
      '("d" . dired-jump)
@@ -392,12 +353,13 @@ targets."
      '("F" . consult-fd)
      '("n" . consult-ripgrep)
      `("h" . ,my-help-map)
-     `("i" . ,my-eglot-map)
+     `("i" . ,my-lsp-map)
      '("j" . consult-imenu)
      (cons "l" popwin:keymap)
      '("k" . magit)
      '("p" . project-find-file)
      '("P" . project-switch-project)
+     '("q" . consult-mark)
      '("r" . consult-recent-file)
      '("s" . save-buffer)
      '("t" . prism-randomize-colors)
@@ -407,7 +369,6 @@ targets."
      '("v" . consult-yank-pop)
      '("V" . eval-region)
      `("w" . ,my-window-map)
-     '("q" . consult-mark)
      '("1" . meow-digit-argument)
      '("2" . meow-digit-argument)
      '("3" . meow-digit-argument)
@@ -520,34 +481,6 @@ targets."
   :config (undo-fu-session-global-mode t))
 #+end_src
 
-** tree sitter
-#+begin_src elisp :tangle "init.el"
-(use-package treesit-auto
-  :config
-  (setq treesit-auto-install 't)
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode)
-  (setq treesit-language-source-alist
-        '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-          (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-          (css "https://github.com/tree-sitter/tree-sitter-css")
-          (html "https://github.com/tree-sitter/tree-sitter-html")
-          (go "https://github.com/tree-sitter/tree-sitter-go")
-          (gomod "https://github.com/camdencheek/tree-sitter-go-mod")
-          (nix "https://github.com/nix-community/tree-sitter-nix")
-          (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-          (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
-          (json "https://github.com/tree-sitter/tree-sitter-json")
-          (make "https://github.com/alemuller/tree-sitter-make")
-          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-          (python "https://github.com/tree-sitter/tree-sitter-python")
-          (toml "https://github.com/tree-sitter/tree-sitter-toml")
-          (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-          (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
-          (java "https://github.com/tree-sitter/tree-sitter-java")
-          (rust "https://github.com/tree-sitter/tree-sitter-rust"))))
-#+end_src
-
 ** modeline
 #+begin_src elisp :tangle "init.el"
 (use-package spacious-padding
@@ -574,14 +507,15 @@ targets."
   (keycast-mode-line-mode t))
 #+end_src
 
-** ement
-#+begin_src elisp :tangle "init.el"
-(use-package ement)
-#+end_src
-
 ** nix
 #+begin_src elisp :tangle "init.el"
 (use-package nix-mode)
+#+end_src
+
+** direnv
+#+begin_src elisp :tangle "init.el"
+(use-package envrc
+  :config (envrc-global-mode t))
 #+end_src
 
 ** markdown
@@ -590,21 +524,39 @@ targets."
   :mode ("README\\.md\\'" . gfm-mode))
 #+end_src
 
-** eglot
-#+begin_src elisp :tangle "init.el"
-(use-package eglot
-  :ensure nil
-  :hook ((rust-ts-mode bash-ts-mode nix-mode) . eglot-ensure)
-  :config (add-to-list 'eglot-server-programs
-                       `(rust-ts-mode . ("rust-analyzer" :initializationOptions
-                                         ( :procMacro (:enable t)
-                                           :cargo ( :buildScripts (:enable t)
-                                                    :features "all"))))))
+** treesitter
+#+begin_src elisp :tangle "init.el" 
+(use-package treesit-auto
+  :config
+  (setq treesit-auto-install t)
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
-(use-package eglot-booster
-  :after eglot
-  :ensure (:host github :repo "jdtsmith/eglot-booster")
-  :config (eglot-booster-mode))
+(use-package ts-fold
+  :ensure (:host github :repo "emacs-tree-sitter/ts-fold")
+  :config
+  (global-ts-fold-mode)
+  (global-ts-fold-indicators-mode))
+#+end_src
+
+** lsp-bridge
+#+begin_src elisp :tangle "init.el"
+(use-package lsp-bridge
+  :hook (prog-mode . lsp-bridge-mode)
+  :ensure (:host github :build (:not elpaca--byte-compile) :files ("*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources") :repo "manateelazycat/lsp-bridge")
+  :bind (:map acm-mode-map
+              ("TAB"      . acm-select-next)
+              ([tab]      . acm-select-next)
+              ("S-TAB"    . acm-select-prev)
+              ([backtab]  . acm-select-prev)
+              ("RET"      . acm-complete))
+  :diminish (lsp-bridge-mode)
+  :config
+  (setq lsp-bridge-enable-hover-diagnostic t
+        lsp-bridge-enable-auto-format-code t
+        acm-enable-codeium t
+        acm-backend-search-file-words-enable-fuzzy-match t
+        acm-enable-preview t))
 #+end_src
 
 ** git
@@ -618,8 +570,6 @@ targets."
    '(git-gutter:modified-sign "● ")
    '(git-gutter:added-sign "▶ ")
    '(git-gutter:deleted-sign "▼ ")))
-
-(use-package wgrep)
 #+end_src
 
 ** ui
@@ -633,12 +583,6 @@ targets."
   (setq goggles-pulse t)
   (goggles-mode t))
 
-(use-package prism
-  :hook ((org-mode prog-mode) . prism-mode)
-  :config (setq prism-comments nil))
-
-(use-package rainbow-mode)
-
 (use-package which-key
   :diminish (which-key-mode)
   :config
@@ -650,15 +594,15 @@ targets."
 
 ** help
 #+begin_src elisp :tangle init.el
-(use-package seq)
+;; (use-package seq)
 
-(use-package eldoc
-  :diminish (eldoc-mode))
+;; (use-package eldoc
+;;   :diminish (eldoc-mode))
 
-(use-package eldoc-box
-  :diminish (eldoc-box-hover-at-point-mode)
-  :after eldoc
-  :hook (prog-mode . eldoc-box-hover-at-point-mode))
+;; (use-package eldoc-box
+;;   :diminish (eldoc-box-hover-at-point-mode)
+;;   :after eldoc
+;;   :hook (prog-mode . eldoc-box-hover-at-point-mode))
 
 (use-package helpful)
 #+end_src
