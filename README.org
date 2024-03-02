@@ -2,15 +2,17 @@
 #+AUTHOR: ゼン
 #+EMAIL: 71zenith@proton.me
 
-[[file:screenshot1.png]]
+[[file:screenshot2.png]]
 
 The following is my updated emacs config with specific focus on writing code and backs down on features
 such as org mode and general emacs stuff as much. As usual it has been concentrated into =early-init.el= and =init.el=.
 
+I have made an effort into using as much as possible emacs built in packages such as =project.el= instead of =projectile=.
+
 * Notable mentions
-** lsp-bridge (leverages multithreading capabilities of python to make the lsp interaction mostly async)
-** meow (a modal key system similar to kakoune)
-** new-gen (what i'd like to call the modern emacs packages e.g. vertico/embark/consult)
++ lsp-bridge (leverages multithreading capabilities of python to make the lsp interaction mostly async)
++ meow (a modal key system similar to kakoune)
++ new-gen (what i'd like to call the modern emacs goodness e.g. vertico/embark/consult)
 
 
 * early-init.el
