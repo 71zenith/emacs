@@ -1,4 +1,4 @@
-#+TITLE: イーマックス コンフィッグ
+#+TITLE: イーマックス コンフィグ
 #+AUTHOR: ゼン
 #+EMAIL: 71zenith@proton.me
 
@@ -377,12 +377,13 @@ targets."
      '("e" . embark-act)
      '("f" . find-file)
      '("F" . consult-fd)
-     '("n" . consult-ripgrep)
+     '("g" . consult-ripgrep)
      `("h" . ,my-help-map)
      `("i" . ,my-lsp-map)
      '("j" . consult-imenu)
      (cons "l" popwin:keymap)
-     '("k" . magit)
+     '("m" . magit)
+     '("n" . eval-region)
      '("o" . eshell-toggle)
      '("p" . project-find-file)
      '("P" . project-switch-project)
@@ -391,10 +392,9 @@ targets."
      '("s" . save-buffer)
      '("t" . eval-expression)
      '("u" . consult-theme)
-     '("/" . consult-line)
      '("v" . consult-yank-pop)
-     '("V" . eval-region)
      `("w" . ,my-window-map)
+     '("/" . consult-line)
      '("1" . meow-digit-argument)
      '("2" . meow-digit-argument)
      '("3" . meow-digit-argument)
@@ -486,6 +486,8 @@ targets."
     (setq meow-goto-line-function 'consult-goto-line)
     (setq meow-use-dynamic-face-color nil)
     (setq meow-keypad-start-keys nil)
+    (setq meow-keypad-meta-prefix nil)
+    (setq meow-keypad-ctrl-meta-prefix nil)
     (add-to-list 'meow-mode-state-list '(eshell-mode . insert))
     (meow-global-mode 1))
 #+end_src
