@@ -30,8 +30,8 @@
              (setq vc-handled-backends vc-handled-backends-old)
              (setq gc-cons-threshold (* 8 1000 1000))
              (setq gc-cons-percentage 0.1)
-             (set-frame-parameter nil 'alpha-background 95)
-             (add-to-list 'default-frame-alist '(alpha-background . 95)))
+             (set-frame-parameter nil 'alpha-background 50)
+             (add-to-list 'default-frame-alist '(alpha-background . 50)))
           t)
 
 (add-hook 'emacs-startup-hook
@@ -160,7 +160,6 @@
 #+begin_src elisp :tangle "init.el"
 (use-package embark
   :defer t
-  :bind (("M-e" . embark-act))
   :config
   (defun embark-which-key-indicator ()
     "An embark indicator that displays keymaps using which-key.
@@ -288,6 +287,7 @@ targets."
   (push '("*Help*" :height 7) popwin:special-display-config)
   (push '("*Occur*" :height 7) popwin:special-display-config)
   (push '("*tree-sit*" :height 7 :noselect t) popwin:special-display-config)
+  (push '("*lsp-bridge*" :height 7 :noselect t) popwin:special-display-config)
   (push '("*eldoc*" :height 7) popwin:special-display-config)
   (push '("*compilation*" :height 7) popwin:special-display-config))
 #+end_src
@@ -319,12 +319,12 @@ targets."
   (defvar my-lsp-map
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd "d") #'lsp-bridge-find-def)
-      (define-key map (kbd "r") #'lsp-bridge-find-references)
+      (define-key map (kbd "s") #'lsp-bridge-find-references)
       (define-key map (kbd "i") #'lsp-bridge-find-impl)
       (define-key map (kbd "k") #'lsp-bridge-popup-documentation)
-      (define-key map (kbd "f") #'lsp-bridge-diagnostic-list)
+      (define-key map (kbd "a") #'lsp-bridge-diagnostic-list)
       (define-key map (kbd "l") #'lsp-bridge-workspace-list-symbols)
-      (define-key map (kbd "a") #'lsp-bridge-code-format)
+      (define-key map (kbd "f") #'lsp-bridge-code-format)
       (define-key map (kbd "c") #'lsp-bridge-code-action)
       (define-key map (kbd "r") #'lsp-bridge-rename)
       map))
@@ -358,7 +358,6 @@ targets."
      `("c" . ,my-git-gutter-map)
      '("d" . dired-jump)
      '("e" . embark-act)
-     '("E" . eshell-toggle)
      '("f" . find-file)
      '("F" . consult-fd)
      '("n" . consult-ripgrep)
@@ -367,14 +366,14 @@ targets."
      '("j" . consult-imenu)
      (cons "l" popwin:keymap)
      '("k" . magit)
+     '("o" . eshell-toggle)
      '("p" . project-find-file)
      '("P" . project-switch-project)
      '("q" . consult-mark)
      '("r" . consult-recent-file)
      '("s" . save-buffer)
-     '("t" . prism-randomize-colors)
+     '("t" . eval-expression)
      '("u" . consult-theme)
-     '(":" . eval-expression)
      '("/" . consult-line)
      '("v" . consult-yank-pop)
      '("V" . eval-region)
@@ -524,8 +523,7 @@ targets."
 
 ** direnv
 #+begin_src elisp :tangle "init.el"
-(use-package envrc
-  :config (envrc-global-mode t))
+(use-package envrc)
 #+end_src
 
 ** markdown
@@ -541,15 +539,11 @@ targets."
   (setq treesit-auto-install t)
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
-
-(use-package ts-fold
-  :ensure (:host github :repo "emacs-tree-sitter/ts-fold"))
 #+end_src
 
 ** lsp-bridge
 #+begin_src elisp :tangle "init.el"
 (use-package lsp-bridge
-  :hook ((prog-mode) . lsp-bridge-mode)
   :ensure (:host github :build (:not elpaca--byte-compile) :files ("*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources") :repo "manateelazycat/lsp-bridge")
   :bind (:map acm-mode-map
               ("TAB"      . acm-select-next)
@@ -563,13 +557,15 @@ targets."
         lsp-bridge-enable-auto-format-code t
         acm-enable-codeium t
         lsp-bridge-enable-org-babel t
+        lsp-bridge-nix-lsp-server "nil"
         acm-backend-search-file-words-enable-fuzzy-match t
         acm-enable-preview t))
 #+end_src
 
 ** git
 #+begin_src elisp :tangle "init.el"
-(use-package magit)
+(use-package magit
+  :defer t)
 
 (use-package git-gutter
   :diminish (git-gutter-mode)
@@ -602,7 +598,8 @@ targets."
 
 ** help
 #+begin_src elisp :tangle init.el
-(use-package helpful)
+(use-package helpful
+  :defer t)
 #+end_src
 
 ** fontaine
@@ -615,7 +612,7 @@ targets."
         (t
          :default-family "Iosevka Comfy"
          :default-weight regular
-         :default-height 180
+         :default-height 177
 
          :fixed-pitch-family nil
          :fixed-pitch-weight nil
@@ -668,7 +665,7 @@ targets."
   :config
   (require 'dired-x)
   (setq dired-listing-switches
-        "-AGFhlv --group-directories-first --time-style=long-iso"
+        "-AGFhlv --time-style=locale"
         dired-mouse-drag-files t
         dired-bind-jump nil
         dired-kill-when-opening-new-dired-buffer t))
@@ -747,9 +744,12 @@ targets."
                 delete-old-versions t
                 kept-old-versions 5
                 kept-new-versions 5
+                auto-save-file-name-transforms `((".*" ,(concat user-emacs-directory "auto-save-list/") t))
                 backup-directory-alist (list (cons "." (concat user-emacs-directory "backup/"))))
 
-  (setq whitespace-style '(face tabs trailing lines empty space indentation space-mark tab-mark))
+  (setq whitespace-style '(face tabs trailing lines empty spaces indentation space-mark tab-mark))
+  (add-hook 'before-save-hook #'whitespace-cleanup)
+
   (add-hook 'prog-mode-hook #'hl-line-mode)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
@@ -760,6 +760,8 @@ targets."
   (prettify-symbols-mode t)
   (global-auto-revert-mode t)
   (savehist-mode t)
+  (column-number-mode t)
+  (size-indication-mode t)
 
   (defadvice split-window (after split-window-after activate)
     (other-window 1))
@@ -785,7 +787,7 @@ alias clear clear-scrollback
 alias cat bat -p -P
 alias cp cp -ivr
 alias d sudo
-alias del sudo nix-collect-garbage --delete-old 
+alias del sudo nix-collect-garbage --delete-old
 alias df duf
 alias du dust
 alias f free -h
