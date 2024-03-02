@@ -9,14 +9,17 @@ such as org mode and general emacs stuff as much. As usual it has been concentra
 
 I have made an effort into using as much as possible emacs built in packages such as =project.el= instead of =projectile=.
 
+Theme is [[https://github.com/nyoom-engineering/base16-oxocarbon][oxocarbon-dark]] provided by [[https://github.com/danth/stylix][stylix-nix]].
+
 * Notable mentions
-+ lsp-bridge (leverages multithreading capabilities of python to make the lsp interaction mostly async)
-+ meow (a modal key system similar to kakoune)
-+ new-gen (what i'd like to call the modern emacs goodness e.g. vertico/embark/consult)
++ =lsp-bridge= (leverages multithreading capabilities of python to make the lsp interaction mostly async)
++ =meow= (a modal key system similar to kakoune)
++ new-gen (what i'd like to call the modern emacs goodness e.g. =vertico/embark/consult=)
 
 
 * early-init.el
 #+begin_src  emacs-lisp :tangle "early-init.el"
+;;; early-init.el -*- lexical-binding: t; -*-
 (setq-default package-enable-at-startup nil
               use-dialog-box nil
               file-name-handler-alist nil
@@ -67,6 +70,7 @@ I have made an effort into using as much as possible emacs built in packages suc
 * init.el
 ** elpaca
 #+begin_src elisp :tangle "init.el"
+;;; init.el -*- lexical-binding: t; -*-
 (defvar elpaca-installer-version 0.6)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
@@ -535,7 +539,8 @@ targets."
 
 ** direnv
 #+begin_src elisp :tangle "init.el"
-(use-package envrc)
+(use-package envrc
+  :config (envrc-global-mode t))
 #+end_src
 
 ** markdown
