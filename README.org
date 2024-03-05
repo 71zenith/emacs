@@ -9,7 +9,7 @@ such as org mode and general emacs stuff as much. As usual it has been concentra
 
 I have made an effort into using as much as possible emacs built in packages such as =project.el= instead of =projectile=.
 
-Theme is [[https://github.com/nyoom-engineering/base16-oxocarbon][oxocarbon-dark]] provided by [[https://github.com/danth/stylix][stylix-nix]].
+Theme is [[https://github.com/nyoom-engineering/base16-oxocarbon][oxocarbon-dark]] provided by [[https://github.com/danth/stylix][stylix-nix]]. Font is [[https://github.com/protesilaos/iosevka-comfy][iosevka-comfy]] (monospace) and =product-sans/google-sans= (sans/sans-serif).
 
 * Notable mentions
 + =lsp-bridge= (leverages multithreading capabilities of python to make the lsp interaction mostly async)
@@ -23,6 +23,7 @@ Theme is [[https://github.com/nyoom-engineering/base16-oxocarbon][oxocarbon-dark
 (setq-default package-enable-at-startup nil
               use-dialog-box nil
               file-name-handler-alist nil
+              frame-inhibit-implied-resize t
               load-prefer-newer t
               inhibit-compacting-font-caches t
               warning-minimum-level :error
@@ -46,8 +47,8 @@ Theme is [[https://github.com/nyoom-engineering/base16-oxocarbon][oxocarbon-dark
              (setq vc-handled-backends vc-handled-backends-old)
              (setq gc-cons-threshold (* 8 100000 100000))
              (setq gc-cons-percentage 0.1)
-             (set-frame-parameter nil 'alpha-background 80)
-             (add-to-list 'default-frame-alist '(alpha-background . 80)))
+             (set-frame-parameter nil 'alpha-background 85)
+             (add-to-list 'default-frame-alist '(alpha-background . 85)))
           t)
 
 (add-hook 'emacs-startup-hook
@@ -57,6 +58,8 @@ Theme is [[https://github.com/nyoom-engineering/base16-oxocarbon][oxocarbon-dark
                              (float-time
                               (time-subtract after-init-time before-init-time)))
                      gcs-done)))
+
+(add-to-list 'default-frame-alist '(background-color . "#161616"))
 
 (setq-default default-frame-alist
               '((tool-bar-lines . 0)
@@ -71,12 +74,12 @@ Theme is [[https://github.com/nyoom-engineering/base16-oxocarbon][oxocarbon-dark
 ** elpaca
 #+begin_src elisp :tangle "init.el"
 ;;; init.el -*- lexical-binding: t; -*-
-(defvar elpaca-installer-version 0.6)
+(defvar elpaca-installer-version 0.7)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil
+                              :ref nil :depth 1
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                               :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
@@ -89,8 +92,10 @@ Theme is [[https://github.com/nyoom-engineering/base16-oxocarbon][oxocarbon-dark
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
         (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (call-process "git" nil buffer t "clone"
-                                       (plist-get order :repo) repo)))
+                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                 ,@(when-let ((depth (plist-get order :depth)))
+                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                 ,(plist-get order :repo) ,repo))))
                  ((zerop (call-process "git" nil buffer t "checkout"
                                        (or (plist-get order :ref) "--"))))
                  (emacs (concat invocation-directory invocation-name))
@@ -370,7 +375,7 @@ targets."
      '("<escape>" . ignore))
     (meow-leader-define-key
      '("SPC" . execute-extended-command)
-     `("a" . replace-regexp)
+     `("a" . visual-replace)
      `("b" . ,my-buffer-map)
      `("c" . ,my-git-gutter-map)
      '("d" . dired-jump)
@@ -500,6 +505,11 @@ targets."
   :hook ((prog-mode org-mode) . yas-minor-mode))
 #+end_src
 
+** visual-replace
+#+begin_src elisp :tangle "init.el"
+(use-package visual-replace
+  :ensure (:host github :repo "szermatt/visual-replace"))
+#+end_src
 ** undo-fu
 #+begin_src elisp :tangle "init.el"
 (use-package undo-fu)
@@ -510,6 +520,7 @@ targets."
 
 ** modeline
 #+begin_src elisp :tangle "init.el"
+(use-package doom-themes)
 (use-package spacious-padding
   :config
   (setq spacious-padding-widths
@@ -541,8 +552,7 @@ targets."
 
 ** direnv
 #+begin_src elisp :tangle "init.el"
-(use-package envrc
-  :config (envrc-global-mode t))
+(use-package envrc)
 #+end_src
 
 ** markdown
@@ -583,8 +593,9 @@ targets."
 
 ** git
 #+begin_src elisp :tangle "init.el"
-(use-package magit
-  :defer t)
+;; (use-package magit
+;;   :ensure (:host github :repo "magit/magit")
+;;   :defer t)
 
 (use-package git-gutter
   :diminish (git-gutter-mode)
