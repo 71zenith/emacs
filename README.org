@@ -375,7 +375,7 @@ targets."
      '("<escape>" . ignore))
     (meow-leader-define-key
      '("SPC" . execute-extended-command)
-     `("a" . visual-replace)
+     `("a" . replace-regexp)
      `("b" . ,my-buffer-map)
      `("c" . ,my-git-gutter-map)
      '("d" . dired-jump)
@@ -386,6 +386,7 @@ targets."
      `("h" . ,my-help-map)
      `("i" . ,my-lsp-map)
      '("j" . consult-imenu)
+     '("K" . kill-emacs)
      (cons "l" popwin:keymap)
      '("m" . magit)
      '("n" . eval-region)
@@ -552,7 +553,8 @@ targets."
 
 ** direnv
 #+begin_src elisp :tangle "init.el"
-(use-package envrc)
+(use-package envrc
+  :config (envrc-global-mode t))
 #+end_src
 
 ** markdown
@@ -593,9 +595,10 @@ targets."
 
 ** git
 #+begin_src elisp :tangle "init.el"
-;; (use-package magit
-;;   :ensure (:host github :repo "magit/magit")
-;;   :defer t)
+(use-package transient
+  :defer t)
+(use-package magit
+  :defer t)
 
 (use-package git-gutter
   :diminish (git-gutter-mode)
@@ -634,45 +637,57 @@ targets."
 
 ** fontaine
 #+begin_src elisp :tangle "init.el"
-(use-package fontaine
+(when (display-graphic-p)
+  (use-package fontaine
+    :config
+    (setq fontaine-set-preset 'regular
+          fontaine-presets
+          '((regular)
+            (t
+             :default-family "Iosevka Comfy"
+             :default-weight regular
+             :default-height 175
+
+             :fixed-pitch-family nil
+             :fixed-pitch-weight nil
+             :fixed-pitch-height 1.0
+
+             :fixed-pitch-serif-family nil
+             :fixed-pitch-serif-weight nil
+             :fixed-pitch-serif-height 1.0
+
+             :mode-line-active-family "Google Sans"
+             :mode-line-active-weight nil
+             :mode-line-active-height 210
+
+             :mode-line-inactive-family "Google Sans"
+             :mode-line-inactive-weight nil
+             :mode-line-inactive-height 210
+
+             :line-number-family nil
+             :line-number-weight nil
+             :line-number-height 0.9
+
+             :bold-family nil
+             :bold-weight bold
+
+             :italic-family nil
+             :italic-slant italic
+
+             :line-spacing nil)))
+    (fontaine-mode t)
+    (fontaine-set-preset 'regular)))
+#+end_src
+
+** nw
+#+begin_src elisp :tangle "init.el"
+(use-package xclip
   :config
-  (setq fontaine-set-preset 'regular
-        fontaine-presets
-      '((regular)
-        (t
-         :default-family "Iosevka Comfy"
-         :default-weight regular
-         :default-height 175
-
-         :fixed-pitch-family nil
-         :fixed-pitch-weight nil
-         :fixed-pitch-height 1.0
-
-         :fixed-pitch-serif-family nil
-         :fixed-pitch-serif-weight nil
-         :fixed-pitch-serif-height 1.0
-
-         :mode-line-active-family "Google Sans"
-         :mode-line-active-weight nil
-         :mode-line-active-height 210
-
-         :mode-line-inactive-family "Google Sans"
-         :mode-line-inactive-weight nil
-         :mode-line-inactive-height 210
-
-         :line-number-family nil
-         :line-number-weight nil
-         :line-number-height 0.9
-
-         :bold-family nil
-         :bold-weight bold
-
-         :italic-family nil
-         :italic-slant italic
-
-         :line-spacing nil)))
-  (fontaine-mode t)
-  (fontaine-set-preset 'regular))
+  (when (not (display-graphic-p))
+    (xclip-mode 1)
+    (add-to-list 'term-file-aliases '("foot" . "xterm"))
+    (load-theme 'doom-sourcerer t)
+    (set-face-attribute 'default nil :background "unspecified-bg")))
 #+end_src
 
 ** server
