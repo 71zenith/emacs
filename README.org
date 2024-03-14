@@ -288,6 +288,10 @@ targets."
               ("C-j" . eshell-previous-matching-input-from-input)
               ("C-k" . eshell-next-matching-input-from-input)))
 
+(use-package capf-autosuggest
+  :defer t
+  :hook ((eshell-mode . capf-autosuggest-mode)))
+
 (use-package eshell-toggle
   :defer t
   :config
@@ -297,7 +301,6 @@ targets."
 (use-package eshell-syntax-highlighting
   :hook
   (eshell-mode . eshell-syntax-highlighting-mode))
-
 #+end_src
 
 ** popwin
@@ -554,7 +557,7 @@ targets."
 ** direnv
 #+begin_src elisp :tangle "init.el"
 (use-package envrc
-  :config (envrc-global-mode t))
+  :hook ((prog-mode) . envrc-global-mode))
 #+end_src
 
 ** markdown
@@ -588,7 +591,16 @@ targets."
         lsp-bridge-enable-auto-format-code t
         acm-enable-codeium t
         lsp-bridge-enable-org-babel t
+        lsp-bridge-python-lsp-server "ruff"
+        lsp-bridge-python-multi-lsp-server "pyright_ruff"
         lsp-bridge-nix-lsp-server "nil"
+        lsp-bridge-enable-auto-format-code t
+        acm-backend-lsp-candidate-min-length 3
+        acm-backend-yas-candidate-min-length 2
+        acm-backend-search-file-words-candidate-min-length 5
+        acm-backend-lsp-match-mode "fuzzy"
+        lsp-bridge-enable-org-babel t
+        acm-enable-icon t
         acm-backend-search-file-words-enable-fuzzy-match t
         acm-enable-preview t))
 #+end_src
@@ -735,6 +747,7 @@ targets."
         next-screen-context-lines 5
         tab-always-indent 'complete
         comment-multi-line nil
+        recentf-max-saved-items 200
         vc-follow-symlinks t
         line-move-visual nil
         initial-scratch-message nil

@@ -3,6 +3,7 @@ let
 in
   pkgs.mkShell {
     buildInputs = with pkgs; [
+      lolcat
       python311Packages.epc
       python311Packages.orjson
       python311Packages.sexpdata
@@ -12,7 +13,6 @@ in
       python311Packages.rapidfuzz
     ];
     shellHook = ''
-    export TEMPDIR=/tmp
-    echo "initiating emacs env"
+    echo "initiating emacs env" | lolcat
     '';
   }
