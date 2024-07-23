@@ -81,14 +81,14 @@
 
        :checkers
        syntax              ; tasing you for every semicolon you forget
-       (spell +aspell) ; tasing you for misspelling mispelling
+       (spell +aspell +flyspell) ; tasing you for misspelling mispelling
        ;;grammar           ; tasing grammar mistake every you make
 
        :tools
        ;;ansible
        ;;biblio            ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
-       ;;debugger          ; FIXME stepping through code, to help you add bugs
+       (debugger +lsp)          ; FIXME stepping through code, to help you add bugs
        direnv
        ;;docker
        ;;editorconfig      ; let someone else argue about tabs vs spaces
