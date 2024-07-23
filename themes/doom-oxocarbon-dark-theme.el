@@ -54,35 +54,35 @@ determine the exact padding."
                 "A dark Opera theme."
 
                 ;; name        default   256       16
-                ((bg         '("#161616" "#161616" nil            ))
-                 (bg-alt     '("#161616" "#161616" nil            ))
-                 (base0      '("#161616" "#161616" "black"        ))
-                 (base1      '("#262626" "#262626" "brightblack"  ))
-                 (base2      '("#393939" "#393939" "brightblack"  ))
-                 (base3      '("#525252" "#525252" "brightblack"  ))
-                 (base4      '("#dde1e6" "#dde1e6" "brightblack"  ))
-                 (base5      '("#f2f4f8" "#f2f4f8" "brightblack"  ))
-                 (base6      '("#ffffff" "#ffffff" "brightblack"  ))
-                 (base7      '("#08bdba" "#08bdba" "brightblack"  ))
-                 (base8      '("#3ddbd9" "#3ddbd9" "white"        ))
-                 (fg         '("#ff7eb6" "#f2f4f8" "white"        ))
-                 (fg-alt     '("#262626" "#ffffff" "brightwhite"  ))
+                ((bg         '("#161616" ))
+                 (bg-alt     '("#161616" ))
+                 (base0      '("#161616" ))
+                 (base1      '("#262626" ))
+                 (base2      '("#393939" ))
+                 (base3      '("#525252" ))
+                 (base4      '("#dde1e6" ))
+                 (base5      '("#f2f4f8" ))
+                 (base6      '("#ffffff" ))
+                 (base7      '("#08bdba" ))
+                 (base8      '("#3ddbd9" ))
+                 (fg         '("#ff7eb6" ))
+                 (fg-alt     '("#262626" ))
 
-                 (grey       '("#393939" "#393939" "white"))
-                 (red        '("#ee5396" "#ee5396" "red"          ))
-                 (orange     '("#ff7eb6" "#ff7eb6" "brightred"    ))
-                 (green      '("#42be65" "#42be65" "green"        ))
-                 (teal       '("#3ddbd9" "#3ddbd9" "brightgreen"  ))
-                 (yellow     '("#ECCC87" "#ECBE7B" "yellow"       ))
-                 (blue       '("#33b1ff" "#33b1ff" "brightblue"   ))
-                 (dark-blue  '("#78a9ff" "#78a9ff" "blue"         ))
-                 (magenta    '("#be95ff" "#be95ff" "magenta"      ))
-                 (violet     '("#be95ff" "#be95ff" "brightmagenta"))
-                 (cyan       '("#82cfff" "#82cfff" "brightcyan"   ))
-                 (dark-cyan  '("#08bdba" "#08bdba" "cyan"         ))
+                 (grey       '("#393939" ))
+                 (red        '("#ee5396" ))
+                 (orange     '("#ff7eb6" ))
+                 (green      '("#42be65" ))
+                 (teal       '("#3ddbd9" ))
+                 (yellow     '("#ECCC87" ))
+                 (blue       '("#33b1ff" ))
+                 (dark-blue  '("#78a9ff" ))
+                 (magenta    '("#be95ff" ))
+                 (violet     '("#be95ff" ))
+                 (cyan       '("#82cfff" ))
+                 (dark-cyan  '("#08bdba" ))
 
                  ;; face categories -- required for all themes
-                 (highlight      blue)
+                 (highlight      base5)
                  (vertical-bar   (doom-darken base1 0.5))
                  (selection      dark-blue)
                  (builtin        blue)
@@ -112,8 +112,8 @@ determine the exact padding."
                   (when doom-oxocarbon-dark-padded-modeline
                     (if (integerp doom-oxocarbon-dark-padded-modeline) doom-oxocarbon-dark-padded-modeline 4)))
 
-                 (modeline-fg     'unspecified)
-                 (modeline-fg-alt base5)
+                 (modeline-fg     base8)
+                 (modeline-fg-alt base8)
 
                  (modeline-bg
                   (if -modeline-bright
@@ -130,6 +130,7 @@ determine the exact padding."
                 (((line-number &override) :foreground fg-alt)
                  ((line-number-current-line &override) :foreground fg)
                  ((font-lock-comment-face &override)
+                  :slant 'italic
                   :background (if doom-oxocarbon-dark-comment-bg (doom-lighten bg 0.05) 'unspecified))
                  (mode-line
                   :background modeline-bg :foreground modeline-fg
