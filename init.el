@@ -59,7 +59,7 @@
        (clojure +tree-sitter)
        emacs-lisp
        (markdown +grip)
-       (nix +tree-sitter +lsp)
+       (nix +tree-sitter)
        (org +pretty)
        (python +tree-sitter +lsp)
        (rust +lsp +tree-sitter)
@@ -69,7 +69,6 @@
 
        :app
        calendar
-       rss
 
        :config
        (default +bindings +smartparens))

@@ -20,15 +20,29 @@
       kill-whole-line t
       confirm-kill-emacs nil)
 
-(global-visual-line-mode 1)
-
-(set-rotate-patterns! 'nix-mode
-  :words '(("true" "false")))
+(global-visual-line-mode +1)
+(global-subword-mode +1)
 
 (setq fancy-splash-image (concat doom-user-dir "kobeni.jpg"))
 
-(setq elfeed-feeds
-      '("https://port19.xyz/rss.xml"
-        "https://derisis13.github.io/feed.xml"))
+(setq +doom-dashboard-functions '(doom-dashboard-widget-banner doom-dashboard-widget-loaded))
 
-(setq +doom-dashboard-menu-sections (cl-subseq +doom-dashboard-menu-sections 5 6))
+(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
+
+(after! evil
+  (setq evil-split-window-below t
+        evil-vsplit-window-right t
+        evil-ex-substitute-global t
+        evil-kill-on-visual-paste nil
+        evil-mode-line-format nil))
+
+(after! which-key
+  (setq which-key-idle-delay 0.2
+        which-key-idle-secondary-delay 0.05))
+
+(set-frame-parameter (selected-frame) 'alpha-background 80)
+(add-to-list 'default-frame-alist '(alpha-background . 80))
+
+(defadvice! prompt-for-buffer (&rest _)
+  :after '(evil-window-split evil-window-vsplit window-split)
+  (consult-buffer))
