@@ -51,7 +51,7 @@ determine the exact padding."
 ;;; Theme definition
 
 (def-doom-theme doom-oxocarbon-dark
-                "A dark Opera theme."
+                "A dark oxocarbon theme."
 
                 ;; name        default
                 ((bg         '("#161616"))
@@ -132,6 +132,9 @@ determine the exact padding."
                  ((font-lock-comment-face &override)
                   :slant 'italic
                   :background (if doom-oxocarbon-dark-comment-bg (doom-lighten bg 0.05) 'unspecified))
+
+                 ((corfu-current &override) :background grey)
+
                  (mode-line
                   :background modeline-bg :foreground modeline-fg
                   :box (if -modeline-pad `(:line-width ,-modeline-pad :color ,modeline-bg)))

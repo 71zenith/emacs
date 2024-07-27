@@ -6,7 +6,7 @@
        japanese
 
        :completion
-       (corfu +orderless +icons +dabbrev)
+       (corfu +orderless +icons)
        (vertico +icons)
 
        :ui
@@ -42,7 +42,7 @@
        (spell +aspell +flyspell)
 
        :tools
-       (debugger +lsp)
+       debugger
        direnv
        (eval +overlay)
        lookup
