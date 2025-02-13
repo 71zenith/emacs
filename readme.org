@@ -1,0 +1,517 @@
+#+TITLE: Emacs Configuration
+#+AUTHOR: Zen
+#+STARTUP: showeverything
+#+OPTIONS: toc:2 num:nil
+#+PROPERTY: header-args:emacs-lisp :tangle yes :comments link
+
+* Early Initialization
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle early-init.el
+:END:
+
+** Performance Optimizations
+*** Garbage Collection
+#+begin_src emacs-lisp
+;;; early-init.el --- early init file -*- lexical-binding: t -*-
+(defvar file-name-handler-alist-original file-name-handler-alist)
+(defvar vc-handled-backends-original vc-handled-backends)
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
+#+end_src
+
+*** Performance Settings
+#+begin_src emacs-lisp
+(setq site-run-file nil
+      use-dialog-box nil
+      use-file-dialog nil
+      x-gtk-use-system-tooltips nil
+      tooltip-delay 0.1
+      read-process-output-max (* 8 1024 1024)
+      inhibit-compacting-font-caches t
+      redisplay-skip-fontification-on-input t
+      frame-inhibit-implied-resize t
+      vc-handled-backends nil
+      file-name-handler-alist nil
+      kill-ring-max 100000
+      ns-use-proxy-icon nil
+      frame-title-format nil
+      frame-resize-pixelwise t
+      fast-but-imprecise-scrolling t)
+
+(setq idle-update-delay 1.0
+      load-prefer-newer t)
+
+(setq font-lock-maximum-decoration t
+      font-lock-support-mode 'jit-lock-mode
+      jit-lock-stealth-time 1
+      jit-lock-defer-time 0
+      jit-lock-stealth-nice 0.1
+      jit-lock-chunk-size 100)
+
+(setq-default bidi-display-reordering nil
+              bidi-paragraph-direction 'left-to-right
+              font-lock-multiline t)
+#+end_src
+
+** UI Configuration
+*** Frame Settings
+#+begin_src emacs-lisp
+(push '(vertical-scroll-bars) default-frame-alist)
+(push '(menu-bar-lines . 0) default-frame-alist)
+(push '(tool-bar-lines . 0) default-frame-alist)
+(push '(undecorated-round . t) default-frame-alist)
+(push '(internal-border-width . 0) default-frame-alist)
+#+end_src
+
+*** Font Configuration
+#+begin_src emacs-lisp
+(let ((mono-font "Fantasque Sans Mono"))
+  (set-face-attribute 'default nil :family mono-font :height 165)
+  (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0)
+  (set-face-attribute 'variable-pitch nil :family mono-font :height 1.0))
+#+end_src
+
+** Startup Behavior
+*** Disable Unnecessary UI Elements
+#+begin_src emacs-lisp
+(setq inhibit-startup-buffer-menu t
+      inhibit-startup-echo-area-message user-login-name
+      initial-major-mode 'fundamental-mode
+      inhibit-splash-screen t
+      inhibit-startup-message t
+      inhibit-startup-screen t
+      inhibit-default-init t
+      initial-scratch-message nil
+      load-prefer-newer t)
+#+end_src
+
+** System Configuration
+*** Native Compilation
+#+begin_src emacs-lisp
+(when (featurep 'native-compile)
+  (setq native-comp-async-report-warnings-errors nil
+        native-comp-deferred-compilation t))
+#+end_src
+
+*** UTF-8 Configuration
+#+begin_src emacs-lisp
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+#+end_src
+
+** Startup Hooks and Functions
+*** Startup Time Display
+#+begin_src emacs-lisp
+(defun zen/display-startup-time ()
+  (message "📑 loaded in %s with %d 🚮"
+           (format "%.2f ⌛"
+                   (float-time
+                     (time-subtract after-init-time before-init-time)))
+           gcs-done))
+#+end_src
+
+*** Startup Hooks
+#+begin_src emacs-lisp
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (zen/display-startup-time)
+            (set-frame-parameter nil 'alpha-background 90)
+            (add-to-list 'default-frame-alist '(alpha-background . 90)))
+          (setq gc-cons-threshold (* 8 1024 1024)
+                gc-cons-percentage 0.1
+                vc-handled-backends vc-handled-backends-original
+                file-name-handler-alist file-name-handler-alist-original))
+
+(setq custom-file (locate-user-emacs-file "var/custom.el"))
+(load custom-file :no-error-if-missing)
+
+(provide 'early-init)
+#+end_src
+
+* Main Configuration
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle init.el
+:END:
+
+** Package Management
+*** Package Initialization
+#+begin_src emacs-lisp
+;;; init.el --- Init File -*- lexical-binding: t -*-
+
+(require 'package)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                        ("elpa" . "https://elpa.gnu.org/packages/")
+                        ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+(package-initialize)
+#+end_src
+
+*** Use-package Configuration
+#+begin_src emacs-lisp
+(setopt package-install-upgrade-built-in t)
+(setq use-package-verbose nil
+      use-package-expand-minimally t
+      use-package-always-ensure t
+      use-package-compute-statistics t
+      use-package-minimum-reported-time 0.1)
+#+end_src
+
+** Core Packages
+*** Undo System
+#+begin_src emacs-lisp
+(use-package undo-fu :ensure t :defer t)
+(use-package undo-fu-session :ensure t :defer t :hook (after-init . global-undo-fu-session-mode))
+#+end_src
+
+*** Evil/God Mode
+#+begin_src emacs-lisp
+(use-package diminish :ensure t :defer t)
+
+(use-package evil
+  :ensure t
+  :init
+  (setq evil-want-keybinding nil
+        evil-want-C-u-scroll t
+        evil-undo-system 'undo-fu)
+  :config
+  (evil-mode 1)
+  (evil-define-key 'normal global-map (kbd "SPC") 'evil-execute-in-god-state))
+
+(use-package evil-collection
+  :ensure t
+  :after evil
+  :diminish evil-collection-unimpaired-mode
+  :config (evil-collection-init))
+
+(use-package evil-surround
+  :ensure t
+  :after evil
+  :diminish global-evil-surround-mode
+  :hook (after-init . global-evil-surround-mode))
+
+(use-package god-mode :ensure t :defer t :diminish god-local-mode)
+(use-package evil-god-state :ensure t :defer t)
+
+(use-package which-key
+  :ensure t
+  :defer t
+  :diminish which-key-mode
+  :hook (after-init . which-key-mode)
+  :config
+  (setq which-key-idle-delay 0.25)
+  (which-key-enable-god-mode-support))
+#+end_src
+
+** UI Enhancement
+*** Theme and Visual Elements
+#+begin_src emacs-lisp
+(use-package base16-theme :ensure t :init (load-theme 'base16-oxocarbon-dark t))
+
+(use-package nyan-mode
+  :ensure t
+  :defer t
+  :hook ((after-init . nyan-mode)
+         (after-init . nyan-start-animation)))
+
+(use-package spacious-padding
+  :ensure t
+  :defer t
+  :hook (after-init . spacious-padding-mode)
+  :custom
+  (spacious-padding-widths
+        '(:internal-border-width 8
+          :mode-line-width 1
+          :tab-width 2
+          :left-fringe-width 0
+          :right-divider-width 10)))
+
+(use-package popwin :ensure t :defer t :hook (after-init . popwin-mode))
+
+(use-package xkcd :ensure t :defer t)
+
+(use-package keycast
+  :ensure t
+  :defer t
+  :hook (after-init . keycast-mode-line-mode)
+  :config
+  (setq keycast-mode-line-format "%2s%K%C%R "
+        keycast-mode-line-remove-tail-elements nil
+        keycast-mode-line-insert-after 'mode-line-end-spaces)
+  (dolist (input '(self-insert-command org-self-insert-command))
+    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
+  (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
+    (add-to-list 'keycast-substitute-alist `(,event nil))))
+#+end_src
+
+** Completion Framework
+*** Cape and Corfu
+#+begin_src emacs-lisp
+(use-package cape
+  :ensure t
+  :defer t
+  :config
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-emoji)
+  (add-hook 'completion-at-point-functions #'cape-history)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block))
+
+(use-package corfu
+  :ensure t
+  :defer t
+  :hook ((after-init . global-corfu-mode))
+  :config
+  (setq tab-always-indent 'complete
+        corfu-preview-current nil
+        corfu-min-width 4
+        corfu-auto t
+        corfu-cycle t
+        corfu-popupinfo-delay '(0.5 . 0.25))
+  (corfu-history-mode 1)
+  (corfu-popupinfo-mode 1))
+#+end_src
+
+*** Vertico Stack
+#+begin_src emacs-lisp
+(use-package vertico :ensure t :defer t :hook (after-init . vertico-mode))
+(use-package marginalia :ensure t :defer t :hook (after-init . marginalia-mode))
+
+(use-package orderless
+  :ensure t
+  :defer t
+  :config
+  (setq completion-styles '(orderless flex)
+        completion-category-defaults nil
+        completion-category-overrides nil))
+#+end_src
+
+*** Consult
+#+begin_src emacs-lisp
+(use-package consult
+  :ensure t
+  :defer t
+  :config
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+  (global-set-key [remap switch-to-buffer] 'consult-buffer)
+  (global-set-key [remap load-theme] 'consult-theme)
+  (global-set-key [remap recentf] 'consult-recent-file)
+  (global-set-key [remap project-switch-to-buffer] 'consult-project-buffer)
+  (global-set-key [remap isearch-forward] 'consult-line))
+#+end_src
+
+
+** Programming Support
+*** Org Mode
+#+begin_src emacs-lisp
+(use-package org
+  :ensure t
+  :defer t
+  :config
+  (setq org-hide-emphasis-markers t
+        org-pretty-entities t
+        org-edit-src-content-indentation 0
+        org-return-follows-link t))
+#+end_src
+
+*** Version Control
+#+begin_src emacs-lisp
+(use-package magit :ensure t :defer t)
+#+end_src
+
+*** Nix Support
+#+begin_src emacs-lisp
+(use-package nix-mode :ensure t :defer t :hook (nix-mode . nix-ts-mode))
+(use-package nix-ts-mode
+  :ensure t
+  :defer t
+  :hook (nix-ts-mode . (lambda ()
+                          (setq treesit-font-lock-level 4))))
+#+end_src
+
+*** Zig Support
+#+begin_src emacs-lisp
+(use-package zig-mode :ensure t :defer t :hook (zig-mode . zig-ts-mode) :custom (zig-format-on-save nil))
+(use-package zig-ts-mode
+  :ensure t
+  :defer t
+  :hook (zig-ts-mode . (lambda ()
+                         (setq treesit-font-lock-level 4))))
+#+end_src
+
+*** Tree-sitter Support
+#+begin_src emacs-lisp
+(use-package tree-sitter :ensure t :defer t)
+(use-package treesit-auto
+  :ensure t
+  :defer t
+  :hook (after-init . global-treesit-auto-mode)
+  :config
+  (setq treesit-auto-install 'prompt
+        treesit-language-source-alist '((zig . ("https://github.com/maxxnino/tree-sitter-zig"))))
+  (treesit-auto-add-to-auto-mode-alist 'all))
+#+end_src
+
+*** LSP Support
+#+begin_src emacs-lisp
+(use-package eglot
+  :ensure t
+  :defer t
+  :hook ((zig-mode . eglot-ensure)
+         (nix-mode . eglot-ensure)))
+#+end_src
+
+*** Help System Enhancement
+#+begin_src emacs-lisp
+(use-package helpful
+  :ensure t
+  :defer t
+  :bind (([remap describe-function] . helpful-callable)
+         ([remap describe-variable] . helpful-variable)
+         ([remap describe-key] . helpful-key)
+         ([remap describe-command] . helpful-command)
+         ([remap describe-symbol] . helpful-symbol)))
+#+end_src
+
+** File Management
+*** Dired Configuration
+#+begin_src emacs-lisp
+(use-package dired
+  :ensure nil
+  :defer t
+  :hook
+  ((dired-mode . dired-hide-details-mode)
+   (dired-mode . hl-line-mode))
+  :config
+  (setq dired-recursive-copies 'always
+        dired-recursive-deletes 'always
+        dired-mouse-drag-files t
+        delete-by-moving-to-trash t
+        dired-dwim-target t))
+
+(use-package dired-subtree
+  :ensure t
+  :defer t
+  :after dired
+  :bind
+  ( :map dired-mode-map
+    ("<tab>" . dired-subtree-toggle)
+    ("TAB" . dired-subtree-toggle)
+    ("<backtab>" . dired-subtree-remove)
+    ("S-TAB" . dired-subtree-remove))
+  :custom
+  (dired-subtree-use-backgrounds nil))
+#+end_src
+
+** Terminal Support
+*** Eat Terminal
+#+begin_src emacs-lisp
+(use-package eat
+  :ensure t
+  :defer t
+  :hook ((eshell-mode . eat-eshell-mode)
+         (eshell-mode . eat-eshell-visual-command-mode)))
+#+end_src
+
+*** Eshell Configuration
+#+begin_src emacs-lisp
+(use-package eshell-syntax-highlighting
+  :ensure t
+  :defer t
+  :hook (eshell-mode . eshell-syntax-highlighting-mode))
+
+(use-package eshell
+  :ensure t
+  :defer t
+  :config
+  (setq eshell-prompt-function
+      (lambda nil
+          (let ((dir-color (face-attribute 'font-lock-keyword-face :foreground))
+              (prompt-color (face-attribute 'font-lock-builtin-face :foreground)))
+          (concat
+          (propertize (abbreviate-file-name (eshell/pwd)) 'face `(:foreground ,dir-color))
+          (propertize " λ" 'face `(:foreground ,prompt-color))
+          (propertize " "))))))
+#+end_src
+
+** Global Modes and Settings
+*** Enable Global Modes
+#+begin_src emacs-lisp
+(global-hl-line-mode 1)
+(global-auto-revert-mode 1)
+(global-so-long-mode 1)
+(electric-pair-mode 1)
+(recentf-mode 1)
+(size-indication-mode 1)
+(pixel-scroll-precision-mode 1)
+(display-battery-mode 1)
+(savehist-mode 1)
+(save-place-mode 1)
+(delete-selection-mode 1)
+#+end_src
+
+*** Default Settings
+#+begin_src emacs-lisp
+(setq-default confirm-kill-emacs nil
+              confirm-kill-processes nil
+              indent-tabs-mode nil
+              tab-width 4
+              require-final-newline nil
+              use-short-answers t
+              fringes-outside-margins nil
+              indicate-buffer-boundaries nil
+              indicate-empty-lines nil
+              create-lockfiles nil
+              auto-revert-verbose nil
+              auto-revert-interval 1
+              auto-save-no-message t
+              delete-by-moving-to-trash t
+              make-backup-files nil
+              auto-save-default nil
+              auto-save-interval 2000
+              auto-save-timeout 20
+              delete-old-versions t
+              kept-new-versions 6
+              kept-old-versions 2
+              version-control t
+              vc-make-backup-files nil
+              line-spacing 0.08
+              global-auto-revert-non-file-buffers t
+              completion-ignore-case t
+              display-line-numbers-width 4
+              cursor-in-non-selected-windows nil
+              find-file-visit-truename nil
+              ad-redefinition-action 'accept
+              debug-on-error nil
+              scroll-margin 3
+              scroll-conservatively 101
+              scroll-preserve-screen-position t
+              scroll-step 5
+              auto-window-vscroll nil
+              backward-delete-char-untabify-method 'hungry
+              redisplay-skip-fontification-on-input nil
+              truncate-lines t
+              word-wrap t
+              cursor-type 'bar
+              cursor-in-non-selected-windows nil
+              line-move-visual nil)
+#+end_src
+
+*** Server Initialization
+#+begin_src emacs-lisp
+(require 'server)
+(unless (server-running-p) (server-start))
+#+end_src
+
+*** User info
+#+begin_src emacs-lisp
+(setq user-full-name "Mori Zen"
+      user-mail-address "71zenith@proton.me")
+
+(setq calendar-latitude 22.57
+      calendar-longitude 88.36
+      calendar-location-name "Kolkata, India"
+      calendar-week-start-day 1)
+#+end_src
