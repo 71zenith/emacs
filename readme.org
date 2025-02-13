@@ -36,7 +36,8 @@
       ns-use-proxy-icon nil
       frame-title-format nil
       frame-resize-pixelwise t
-      fast-but-imprecise-scrolling t)
+      fast-but-imprecise-scrolling t
+      debug-on-error t)
 
 (setq idle-update-delay 1.0
       load-prefer-newer t)
@@ -192,6 +193,12 @@
   :after evil
   :hook (after-init . global-evil-surround-mode))
 
+(use-package evil-commentary
+  :ensure t
+  :after evil
+  :diminish evil-commentary-mode
+  :hook (after-init . evil-commentary-mode))
+
 (use-package god-mode :ensure t :defer t :diminish god-local-mode)
 (use-package evil-god-state :ensure t :defer t)
 
@@ -202,6 +209,8 @@
   :config
   (setq which-key-idle-delay 0.25)
   (which-key-enable-god-mode-support))
+
+(use-package which-key-posframe :ensure t :defer t :hook (which-key-mode . which-key-posframe-mode))
 #+end_src
 
 ** UI Enhancement
@@ -248,7 +257,7 @@
 *** Completion
 #+begin_src emacs-lisp
 (use-package cape
-  :ensure t :defer t
+  :ensure t
   :config
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-file)
@@ -257,7 +266,7 @@
   (add-hook 'completion-at-point-functions #'cape-elisp-block))
 
 (use-package corfu
-  :ensure t :defer t
+  :ensure t
   :hook ((after-init . global-corfu-mode)
          (after-init . corfu-history-mode)
          (after-init . corfu-popupinfo-mode))
@@ -272,17 +281,18 @@
 
 *** Menus
 #+begin_src emacs-lisp
-(use-package vertico :ensure t :defer t :hook (after-init . vertico-mode))
-(use-package marginalia :ensure t :defer t :hook (after-init . marginalia-mode))
+(use-package vertico :ensure t :hook (after-init . vertico-mode))
+(use-package vertico-posframe :ensure t :hook (vertico-mode . vertico-posframe-mode))
+(use-package marginalia :ensure t :hook (after-init . marginalia-mode))
 
 (use-package orderless
-  :ensure t :defer t
+  :ensure t
   :config
   (setq completion-styles '(orderless basic)
         completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package consult
-  :ensure t :defer t
+  :ensure t
   :config
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
@@ -302,13 +312,20 @@
          ([remap describe-key] . helpful-key)
          ([remap describe-command] . helpful-command)
          ([remap describe-symbol] . helpful-symbol)))
+
+(use-package eldoc-box
+  :ensure t :defer t
+  :hook (eldoc-mode . eldoc-box-hover-at-point-mode)
+  :diminish eldoc-box-hover-at-point-mode eldoc-mode
+  :config
+  (setq eldoc-idle-delay 0.1))
 #+end_src
 
 ** Programming Support
 *** Org Mode
 #+begin_src emacs-lisp
 (use-package org
-  :ensure t :defer t
+  :ensure t
   :config
   (setq org-hide-emphasis-markers t
         org-pretty-entities t
@@ -316,51 +333,20 @@
         org-return-follows-link t))
 #+end_src
 
-*** AI
-#+begin_src emacs-lisp
-(use-package copilot-chat
-  :ensure t :defer t
-  :config
-  (setq copilot-chat-frontend 'shell-maker))
-#+end_src
-
 *** Version Control
 #+begin_src emacs-lisp
 (use-package magit :ensure t :defer t)
+(use-package transient-posframe :ensure t :defer t :hook (after-init . transient-posframe-mode))
 (use-package git-gutter
   :ensure t :defer t
   :hook (after-init . global-git-gutter-mode)
   :diminish git-gutter-mode)
 #+end_src
 
-*** Nix Support
+*** Nix/Zig Support
 #+begin_src emacs-lisp
-(use-package nix-mode :ensure t :defer t :hook (nix-mode . nix-ts-mode))
-(use-package nix-ts-mode
-  :ensure t :defer t
-  :hook (nix-ts-mode . (lambda ()
-                          (setq treesit-font-lock-level 4))))
-#+end_src
-
-*** Zig Support
-#+begin_src emacs-lisp
-(use-package zig-mode :ensure t :defer t :hook (zig-mode . zig-ts-mode) :custom (zig-format-on-save nil))
-(use-package zig-ts-mode
-  :ensure t :defer t
-  :hook (zig-ts-mode . (lambda ()
-                         (setq treesit-font-lock-level 4))))
-#+end_src
-
-*** Tree-sitter Support
-#+begin_src emacs-lisp
-(use-package tree-sitter :ensure t :defer t)
-(use-package treesit-auto
-  :ensure t :defer t
-  :hook (after-init . global-treesit-auto-mode)
-  :config
-  (setq treesit-auto-install 'prompt
-        treesit-language-source-alist '((zig . ("https://github.com/maxxnino/tree-sitter-zig"))))
-  (treesit-auto-add-to-auto-mode-alist 'all))
+(use-package nix-mode :ensure t :defer t)
+(use-package zig-mode :ensure t :defer t :custom (zig-format-on-save nil))
 #+end_src
 
 *** LSP Support
@@ -368,7 +354,9 @@
 (use-package eglot
   :ensure t :defer t
   :hook ((zig-mode . eglot-ensure)
-         (nix-mode . eglot-ensure)))
+         (nix-mode . eglot-ensure))
+  :config
+  (set-face-attribute 'eglot-inlay-hint-face nil :height 1.0))
 #+end_src
 
 ** File Management
@@ -417,14 +405,15 @@
 (use-package eshell
   :ensure t :defer t
   :config
-  (setq eshell-prompt-function
-      (lambda nil
+  (setq eshell-banner-message ""
+        eshell-prompt-function
+        (lambda nil
           (let ((dir-color (face-attribute 'font-lock-keyword-face :foreground))
-              (prompt-color (face-attribute 'font-lock-builtin-face :foreground)))
-          (concat
-          (propertize (abbreviate-file-name (eshell/pwd)) 'face `(:foreground ,dir-color))
-          (propertize " λ" 'face `(:foreground ,prompt-color))
-          (propertize " "))))))
+                (prompt-color (face-attribute 'font-lock-builtin-face :foreground)))
+            (concat
+             (propertize (abbreviate-file-name (eshell/pwd)) 'face `(:foreground ,dir-color))
+             (propertize " λ" 'face `(:foreground ,prompt-color))
+             (propertize " "))))))
 #+end_src
 
 ** Global Modes and Settings
