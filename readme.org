@@ -12,7 +12,7 @@
 ** Performance Optimizations
 *** Garbage Collection
 #+begin_src emacs-lisp
-;;; early-init.el --- early init file -*- lexical-binding: t -*-
+;;; early-init.el -*- lexical-binding: t -*-
 (defvar file-name-handler-alist-original file-name-handler-alist)
 (defvar vc-handled-backends-original vc-handled-backends)
 (setq gc-cons-threshold most-positive-fixnum
@@ -131,16 +131,17 @@
 (provide 'early-init)
 #+end_src
 
+
 * Main Configuration
 :PROPERTIES:
 :header-args:emacs-lisp: :tangle init.el
 :END:
 
+
 ** Package Management
 *** Package Initialization
 #+begin_src emacs-lisp
-;;; init.el --- Init File -*- lexical-binding: t -*-
-
+;;; init.el -*- lexical-binding: t -*-
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                         ("elpa" . "https://elpa.gnu.org/packages/")
@@ -155,10 +156,11 @@
       use-package-expand-minimally t
       use-package-always-ensure t
       use-package-compute-statistics t
-      use-package-minimum-reported-time 0.1)
+      use-package-minimum-reported-time 0.1
+      package-native-compile t)
 #+end_src
 
-** Core Packages
+** Movement/Manipulation
 *** Undo System
 #+begin_src emacs-lisp
 (use-package undo-fu :ensure t :defer t)
@@ -188,15 +190,13 @@
 (use-package evil-surround
   :ensure t
   :after evil
-  :diminish global-evil-surround-mode
   :hook (after-init . global-evil-surround-mode))
 
 (use-package god-mode :ensure t :defer t :diminish god-local-mode)
 (use-package evil-god-state :ensure t :defer t)
 
 (use-package which-key
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :diminish which-key-mode
   :hook (after-init . which-key-mode)
   :config
@@ -210,47 +210,45 @@
 (use-package base16-theme :ensure t :init (load-theme 'base16-oxocarbon-dark t))
 
 (use-package nyan-mode
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook ((after-init . nyan-mode)
          (after-init . nyan-start-animation)))
 
 (use-package spacious-padding
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook (after-init . spacious-padding-mode)
   :custom
   (spacious-padding-widths
         '(:internal-border-width 8
           :mode-line-width 1
           :tab-width 2
-          :left-fringe-width 0
+          :left-fringe-width 3
           :right-divider-width 10)))
 
-(use-package popwin :ensure t :defer t :hook (after-init . popwin-mode))
+(use-package popwin
+  :ensure t :defer t
+  :hook (after-init . popwin-mode)
+  :config
+  (push '("^\*.*\*$" :regexp t) popwin:special-display-config))
 
 (use-package xkcd :ensure t :defer t)
 
 (use-package keycast
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook (after-init . keycast-mode-line-mode)
   :config
   (setq keycast-mode-line-format "%2s%K%C%R "
         keycast-mode-line-remove-tail-elements nil
         keycast-mode-line-insert-after 'mode-line-end-spaces)
   (dolist (input '(self-insert-command org-self-insert-command))
-    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…")))
-  (dolist (event '(mouse-event-p mouse-movement-p mwheel-scroll))
-    (add-to-list 'keycast-substitute-alist `(,event nil))))
+    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…"))))
 #+end_src
 
-** Completion Framework
-*** Cape and Corfu
+** Modern Emacs
+*** Completion
 #+begin_src emacs-lisp
 (use-package cape
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :config
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-file)
@@ -259,39 +257,32 @@
   (add-hook 'completion-at-point-functions #'cape-elisp-block))
 
 (use-package corfu
-  :ensure t
-  :defer t
-  :hook ((after-init . global-corfu-mode))
+  :ensure t :defer t
+  :hook ((after-init . global-corfu-mode)
+         (after-init . corfu-history-mode)
+         (after-init . corfu-popupinfo-mode))
   :config
   (setq tab-always-indent 'complete
         corfu-preview-current nil
         corfu-min-width 4
         corfu-auto t
         corfu-cycle t
-        corfu-popupinfo-delay '(0.5 . 0.25))
-  (corfu-history-mode 1)
-  (corfu-popupinfo-mode 1))
+        corfu-popupinfo-delay '(0.5 . 0.25)))
 #+end_src
 
-*** Vertico Stack
+*** Menus
 #+begin_src emacs-lisp
 (use-package vertico :ensure t :defer t :hook (after-init . vertico-mode))
 (use-package marginalia :ensure t :defer t :hook (after-init . marginalia-mode))
 
 (use-package orderless
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :config
-  (setq completion-styles '(orderless flex)
-        completion-category-defaults nil
-        completion-category-overrides nil))
-#+end_src
+  (setq completion-styles '(orderless basic)
+        completion-category-overrides '((file (styles basic partial-completion)))))
 
-*** Consult
-#+begin_src emacs-lisp
 (use-package consult
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :config
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
@@ -302,13 +293,22 @@
   (global-set-key [remap isearch-forward] 'consult-line))
 #+end_src
 
+*** Help Enhancement
+#+begin_src emacs-lisp
+(use-package helpful
+  :ensure t :defer t
+  :bind (([remap describe-function] . helpful-callable)
+         ([remap describe-variable] . helpful-variable)
+         ([remap describe-key] . helpful-key)
+         ([remap describe-command] . helpful-command)
+         ([remap describe-symbol] . helpful-symbol)))
+#+end_src
 
 ** Programming Support
 *** Org Mode
 #+begin_src emacs-lisp
 (use-package org
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :config
   (setq org-hide-emphasis-markers t
         org-pretty-entities t
@@ -316,17 +316,28 @@
         org-return-follows-link t))
 #+end_src
 
+*** AI
+#+begin_src emacs-lisp
+(use-package copilot-chat
+  :ensure t :defer t
+  :config
+  (setq copilot-chat-frontend 'shell-maker))
+#+end_src
+
 *** Version Control
 #+begin_src emacs-lisp
 (use-package magit :ensure t :defer t)
+(use-package git-gutter
+  :ensure t :defer t
+  :hook (after-init . global-git-gutter-mode)
+  :diminish git-gutter-mode)
 #+end_src
 
 *** Nix Support
 #+begin_src emacs-lisp
 (use-package nix-mode :ensure t :defer t :hook (nix-mode . nix-ts-mode))
 (use-package nix-ts-mode
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook (nix-ts-mode . (lambda ()
                           (setq treesit-font-lock-level 4))))
 #+end_src
@@ -335,8 +346,7 @@
 #+begin_src emacs-lisp
 (use-package zig-mode :ensure t :defer t :hook (zig-mode . zig-ts-mode) :custom (zig-format-on-save nil))
 (use-package zig-ts-mode
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook (zig-ts-mode . (lambda ()
                          (setq treesit-font-lock-level 4))))
 #+end_src
@@ -345,8 +355,7 @@
 #+begin_src emacs-lisp
 (use-package tree-sitter :ensure t :defer t)
 (use-package treesit-auto
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook (after-init . global-treesit-auto-mode)
   :config
   (setq treesit-auto-install 'prompt
@@ -357,30 +366,16 @@
 *** LSP Support
 #+begin_src emacs-lisp
 (use-package eglot
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook ((zig-mode . eglot-ensure)
          (nix-mode . eglot-ensure)))
-#+end_src
-
-*** Help System Enhancement
-#+begin_src emacs-lisp
-(use-package helpful
-  :ensure t
-  :defer t
-  :bind (([remap describe-function] . helpful-callable)
-         ([remap describe-variable] . helpful-variable)
-         ([remap describe-key] . helpful-key)
-         ([remap describe-command] . helpful-command)
-         ([remap describe-symbol] . helpful-symbol)))
 #+end_src
 
 ** File Management
 *** Dired Configuration
 #+begin_src emacs-lisp
 (use-package dired
-  :ensure nil
-  :defer t
+  :ensure nil :defer t
   :hook
   ((dired-mode . dired-hide-details-mode)
    (dired-mode . hl-line-mode))
@@ -392,8 +387,7 @@
         dired-dwim-target t))
 
 (use-package dired-subtree
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :after dired
   :bind
   ( :map dired-mode-map
@@ -409,8 +403,7 @@
 *** Eat Terminal
 #+begin_src emacs-lisp
 (use-package eat
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook ((eshell-mode . eat-eshell-mode)
          (eshell-mode . eat-eshell-visual-command-mode)))
 #+end_src
@@ -418,13 +411,11 @@
 *** Eshell Configuration
 #+begin_src emacs-lisp
 (use-package eshell-syntax-highlighting
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :hook (eshell-mode . eshell-syntax-highlighting-mode))
 
 (use-package eshell
-  :ensure t
-  :defer t
+  :ensure t :defer t
   :config
   (setq eshell-prompt-function
       (lambda nil
@@ -501,17 +492,14 @@
 
 *** Server Initialization
 #+begin_src emacs-lisp
-(require 'server)
-(unless (server-running-p) (server-start))
+(use-package server
+  :defer t
+  :config (unless (server-running-p) (server-start)))
 #+end_src
 
 *** User info
 #+begin_src emacs-lisp
 (setq user-full-name "Mori Zen"
-      user-mail-address "71zenith@proton.me")
-
-(setq calendar-latitude 22.57
-      calendar-longitude 88.36
-      calendar-location-name "Kolkata, India"
+      user-mail-address "71zenith@proton.me"
       calendar-week-start-day 1)
 #+end_src
