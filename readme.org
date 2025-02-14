@@ -66,8 +66,8 @@
 
 *** Font Configuration
 #+begin_src emacs-lisp
-(let ((mono-font "Fantasque Sans Mono"))
-  (set-face-attribute 'default nil :family mono-font :height 165)
+(let ((mono-font "RecMonoSmCasual Nerd Font Mono"))
+  (set-face-attribute 'default nil :family mono-font :height 150)
   (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family mono-font :height 1.0))
 #+end_src
@@ -234,13 +234,13 @@
           :left-fringe-width 3
           :right-divider-width 10)))
 
+(use-package rainbow-delimiters :ensure t :defer t :hook (prog-mode . rainbow-delimiters-mode))
+
 (use-package popwin
   :ensure t :defer t
   :hook (after-init . popwin-mode)
   :config
   (push '("^\*.*\*$" :regexp t) popwin:special-display-config))
-
-(use-package xkcd :ensure t :defer t)
 
 (use-package keycast
   :ensure t :defer t
@@ -279,7 +279,7 @@
         corfu-popupinfo-delay '(0.5 . 0.25)))
 #+end_src
 
-*** Menus
+*** Minibuffers
 #+begin_src emacs-lisp
 (use-package vertico :ensure t :hook (after-init . vertico-mode))
 (use-package vertico-posframe :ensure t :hook (vertico-mode . vertico-posframe-mode))
@@ -343,7 +343,7 @@
   :diminish git-gutter-mode)
 #+end_src
 
-*** Nix/Zig Support
+*** Lang Support
 #+begin_src emacs-lisp
 (use-package nix-mode :ensure t :defer t)
 (use-package zig-mode :ensure t :defer t :custom (zig-format-on-save nil))
@@ -373,6 +373,10 @@
         dired-mouse-drag-files t
         delete-by-moving-to-trash t
         dired-dwim-target t))
+
+(use-package async
+  :ensure t :defer t
+  :hook (dired-mode . dired-async-mode))
 
 (use-package dired-subtree
   :ensure t :defer t
@@ -482,7 +486,7 @@
 *** Server Initialization
 #+begin_src emacs-lisp
 (use-package server
-  :defer t
+  :ensure nil :defer t
   :config (unless (server-running-p) (server-start)))
 #+end_src
 
@@ -490,5 +494,7 @@
 #+begin_src emacs-lisp
 (setq user-full-name "Mori Zen"
       user-mail-address "71zenith@proton.me"
+      default-input-method "japanese"
+      display-time-format "%a %d %b %H:%M"
       calendar-week-start-day 1)
 #+end_src
