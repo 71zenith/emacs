@@ -28,12 +28,15 @@
       tooltip-delay 0.1
       read-process-output-max (* 8 1024 1024)
       inhibit-compacting-font-caches t
+      x-underline-at-descent-line t
       redisplay-skip-fontification-on-input t
       frame-inhibit-implied-resize t
       vc-handled-backends nil
       file-name-handler-alist nil
       kill-ring-max 100000
+      bidi-inhibit-bpa t
       ns-use-proxy-icon nil
+      auto-mode-case-fold nil
       frame-title-format nil
       frame-resize-pixelwise t
       fast-but-imprecise-scrolling t
@@ -59,6 +62,7 @@
 #+begin_src emacs-lisp
 (push '(vertical-scroll-bars) default-frame-alist)
 (push '(menu-bar-lines . 0) default-frame-alist)
+(push '(tool-bar-lines . 0) default-frame-alist)
 (push '(tool-bar-lines . 0) default-frame-alist)
 (push '(undecorated-round . t) default-frame-alist)
 (push '(internal-border-width . 0) default-frame-alist)
@@ -159,6 +163,8 @@
       use-package-compute-statistics t
       use-package-minimum-reported-time 0.1
       package-native-compile t)
+
+(use-package no-littering :ensure t :demand t)
 #+end_src
 
 ** Movement/Manipulation
@@ -177,6 +183,7 @@
   :init
   (setq evil-want-keybinding nil
         evil-want-C-u-scroll t
+        evil-want-C-i-jump t
         evil-undo-system 'undo-fu)
   :config
   (evil-mode 1)
@@ -218,11 +225,6 @@
 #+begin_src emacs-lisp
 (use-package base16-theme :ensure t :init (load-theme 'base16-oxocarbon-dark t))
 
-(use-package nyan-mode
-  :ensure t :defer t
-  :hook ((after-init . nyan-mode)
-         (after-init . nyan-start-animation)))
-
 (use-package spacious-padding
   :ensure t :defer t
   :hook (after-init . spacious-padding-mode)
@@ -235,6 +237,8 @@
           :right-divider-width 10)))
 
 (use-package rainbow-delimiters :ensure t :defer t :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package highlight-numbers :ensure t :defer t :hook (prog-mode . highlight-numbers-mode))
 
 (use-package popwin
   :ensure t :defer t
@@ -288,8 +292,8 @@
 (use-package orderless
   :ensure t
   :config
-  (setq completion-styles '(orderless basic)
-        completion-category-overrides '((file (styles basic partial-completion)))))
+  (setq completion-styles '(orderless substring )
+        completion-category-overrides '((file (styles partial-completion)))))
 
 (use-package consult
   :ensure t
@@ -313,12 +317,6 @@
          ([remap describe-command] . helpful-command)
          ([remap describe-symbol] . helpful-symbol)))
 
-(use-package eldoc-box
-  :ensure t :defer t
-  :hook (eldoc-mode . eldoc-box-hover-at-point-mode)
-  :diminish eldoc-box-hover-at-point-mode eldoc-mode
-  :config
-  (setq eldoc-idle-delay 0.1))
 #+end_src
 
 ** Programming Support
@@ -353,10 +351,40 @@
 #+begin_src emacs-lisp
 (use-package eglot
   :ensure t :defer t
-  :hook ((zig-mode . eglot-ensure)
-         (nix-mode . eglot-ensure))
+  :hook (zig-mode . eglot-ensure)
   :config
-  (set-face-attribute 'eglot-inlay-hint-face nil :height 1.0))
+  (set-face-attribute 'eglot-inlay-hint-face nil :height 1.0)
+  (setq eglot-events-buffer-size 0
+        eglot-send-changes-idle-time 0.1))
+
+(use-package eglot-booster
+  :after eglot
+  :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest :branch "main")
+  :hook (eglot-booster-mode . eglot-ensure))
+
+(use-package flymake
+  :ensure t :defer t
+  :config
+  (custom-set-faces
+    '(flymake-error   ((t (:underline (:style wave :color "Red")))))
+    '(flymake-warning ((t (:underline (:style wave :color "Orange")))))
+    '(flymake-note    ((t (:underline (:style wave :color "Blue")))))))
+
+(use-package yasnippet
+  :ensure t :defer t
+  :hook (prog-mode . yas-minor-mode))
+
+(use-package eldoc
+  :ensure t :defer t
+  :hook (prog-mode . eldoc-mode)
+  :diminish eldoc-mode)
+
+(use-package eldoc-box
+  :ensure t :defer t
+  :hook (eldoc-mode . eldoc-box-hover-mode)
+  :diminish eldoc-box-hover-mode
+  :config
+  (setq eldoc-idle-delay 0.1))
 #+end_src
 
 ** File Management
@@ -439,6 +467,8 @@
 *** Default Settings
 #+begin_src emacs-lisp
 (setq-default confirm-kill-emacs nil
+              ad-redefinition-action 'accept
+              display-time-default-load-average nil
               confirm-kill-processes nil
               indent-tabs-mode nil
               tab-width 4
@@ -466,6 +496,7 @@
               completion-ignore-case t
               display-line-numbers-width 4
               cursor-in-non-selected-windows nil
+              show-trailing-whitespace t
               find-file-visit-truename nil
               ad-redefinition-action 'accept
               debug-on-error nil
@@ -477,6 +508,7 @@
               backward-delete-char-untabify-method 'hungry
               redisplay-skip-fontification-on-input nil
               truncate-lines t
+              vc-follow-symlinks t
               word-wrap t
               cursor-type 'bar
               cursor-in-non-selected-windows nil
