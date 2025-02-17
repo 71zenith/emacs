@@ -1,161 +1,12 @@
-#+TITLE: Emacs Configuration
-#+AUTHOR: Zen
-#+STARTUP: showeverything
-#+OPTIONS: toc:2 num:nil
-#+PROPERTY: header-args:emacs-lisp :tangle yes :comments link
-
-* Early Initialization
-:PROPERTIES:
-:header-args:emacs-lisp: :tangle early-init.el
-:END:
-
-** Performance Optimizations
-*** Garbage Collection
-#+begin_src emacs-lisp
-;;; early-init.el -*- lexical-binding: t -*-
-(defvar file-name-handler-alist-original file-name-handler-alist)
-(defvar vc-handled-backends-original vc-handled-backends)
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.6)
-#+end_src
-
-*** Performance Settings
-#+begin_src emacs-lisp
-(setq site-run-file nil
-      use-dialog-box nil
-      use-file-dialog nil
-      x-gtk-use-system-tooltips nil
-      tooltip-delay 0.1
-      read-process-output-max (* 8 1024 1024)
-      inhibit-compacting-font-caches t
-      x-underline-at-descent-line t
-      redisplay-skip-fontification-on-input t
-      frame-inhibit-implied-resize t
-      vc-handled-backends nil
-      file-name-handler-alist nil
-      kill-ring-max 100000
-      bidi-inhibit-bpa t
-      ns-use-proxy-icon nil
-      auto-mode-case-fold nil
-      frame-title-format nil
-      frame-resize-pixelwise t
-      fast-but-imprecise-scrolling t
-      debug-on-error t)
-
-(setq idle-update-delay 1.0
-      load-prefer-newer t)
-
-(setq font-lock-maximum-decoration t
-      font-lock-support-mode 'jit-lock-mode
-      jit-lock-stealth-time 1
-      jit-lock-defer-time 0
-      jit-lock-stealth-nice 0.1
-      jit-lock-chunk-size 100)
-
-(setq-default bidi-display-reordering nil
-              bidi-paragraph-direction 'left-to-right
-              font-lock-multiline t)
-#+end_src
-
-** UI Configuration
-*** Frame Settings
-#+begin_src emacs-lisp
-(push '(vertical-scroll-bars) default-frame-alist)
-(push '(menu-bar-lines . 0) default-frame-alist)
-(push '(tool-bar-lines . 0) default-frame-alist)
-(push '(tool-bar-lines . 0) default-frame-alist)
-(push '(undecorated-round . t) default-frame-alist)
-(push '(internal-border-width . 0) default-frame-alist)
-#+end_src
-
-*** Font Configuration
-#+begin_src emacs-lisp
-(let ((mono-font "RecMonoSmCasual Nerd Font Mono"))
-  (set-face-attribute 'default nil :family mono-font :height 150)
-  (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0)
-  (set-face-attribute 'variable-pitch nil :family mono-font :height 1.0))
-#+end_src
-
-** Startup Behavior
-*** Disable Unnecessary UI Elements
-#+begin_src emacs-lisp
-(setq inhibit-startup-buffer-menu t
-      inhibit-startup-echo-area-message user-login-name
-      initial-major-mode 'fundamental-mode
-      inhibit-splash-screen t
-      inhibit-startup-message t
-      inhibit-startup-screen t
-      inhibit-default-init t
-      initial-scratch-message nil
-      load-prefer-newer t)
-#+end_src
-
-** System Configuration
-*** Native Compilation
-#+begin_src emacs-lisp
-(when (featurep 'native-compile)
-  (setq native-comp-async-report-warnings-errors nil
-        native-comp-deferred-compilation t))
-#+end_src
-
-*** UTF-8 Configuration
-#+begin_src emacs-lisp
-(set-language-environment "UTF-8")
-(set-default-coding-systems 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(set-selection-coding-system 'utf-8)
-#+end_src
-
-** Startup Hooks and Functions
-*** Startup Time Display
-#+begin_src emacs-lisp
-(defun zen/display-startup-time ()
-  (message "📑 loaded in %s with %d 🚮"
-           (format "%.2f ⌛"
-                   (float-time
-                     (time-subtract after-init-time before-init-time)))
-           gcs-done))
-#+end_src
-
-*** Startup Hooks
-#+begin_src emacs-lisp
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (zen/display-startup-time)
-            (set-frame-parameter nil 'alpha-background 90)
-            (add-to-list 'default-frame-alist '(alpha-background . 90)))
-          (setq gc-cons-threshold (* 8 1024 1024)
-                gc-cons-percentage 0.1
-                vc-handled-backends vc-handled-backends-original
-                file-name-handler-alist file-name-handler-alist-original))
-
-(setq custom-file (locate-user-emacs-file "var/custom.el"))
-(load custom-file :no-error-if-missing)
-
-(provide 'early-init)
-#+end_src
-
-
-* Main Configuration
-:PROPERTIES:
-:header-args:emacs-lisp: :tangle init.el
-:END:
-
-
-** Package Management
-*** Package Initialization
-#+begin_src emacs-lisp
 ;;; init.el -*- lexical-binding: t -*-
+
+;;; Package Initialization
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                        ("elpa" . "https://elpa.gnu.org/packages/")
-                        ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+                         ("elpa" . "https://elpa.gnu.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 (package-initialize)
-#+end_src
 
-*** Use-package Configuration
-#+begin_src emacs-lisp
 (setopt package-install-upgrade-built-in t)
 (setq use-package-verbose nil
       use-package-expand-minimally t
@@ -164,20 +15,16 @@
       use-package-minimum-reported-time 0.1
       package-native-compile t)
 
+(use-package diminish :ensure t :defer t)
 (use-package no-littering :ensure t :demand t)
-#+end_src
 
-** Movement/Manipulation
-*** Undo System
-#+begin_src emacs-lisp
+
+;;; Undo System
 (use-package undo-fu :ensure t :defer t)
 (use-package undo-fu-session :ensure t :defer t :hook (after-init . global-undo-fu-session-mode))
-#+end_src
 
-*** Evil/God Mode
-#+begin_src emacs-lisp
-(use-package diminish :ensure t :defer t)
 
+;;; Evil Mode
 (use-package evil
   :ensure t
   :init
@@ -185,9 +32,7 @@
         evil-want-C-u-scroll t
         evil-want-C-i-jump t
         evil-undo-system 'undo-fu)
-  :config
-  (evil-mode 1)
-  (evil-define-key 'normal global-map (kbd "SPC") 'evil-execute-in-god-state))
+  :config (evil-mode 1))
 
 (use-package evil-collection
   :ensure t
@@ -206,23 +51,69 @@
   :diminish evil-commentary-mode
   :hook (after-init . evil-commentary-mode))
 
-(use-package god-mode :ensure t :defer t :diminish god-local-mode)
-(use-package evil-god-state :ensure t :defer t)
 
+;;; General.el
+(use-package general
+  :ensure t
+  :config
+  (general-evil-setup)
+
+  (general-create-definer leader-keys
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "SPC"
+    :global-prefix "C-SPC")
+
+  (leader-keys
+    "x" '(execute-extended-command :which-key "M-x")
+    ":" '(eval-expression :which-key "M-:")
+    "r" 'restart-emacs
+    "i" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init file")
+
+    "b" '(:ignore t :which-key "buffer")
+    "b d" 'kill-current-buffer
+    "b b" 'consult-buffer
+    "b p" 'previous-buffer
+    "b n" 'next-buffer
+
+    "h" '(:ignore t :which-key "help")
+    "h f" 'helpful-callable
+    "h k" 'helpful-key
+    "h o" 'helpful-symbol
+
+    "f" '(:ignore t :which-key "file")
+    "f s" 'save-buffer
+    "f f" 'find-file
+    "f r" 'consult-recent-file
+    "f p" 'project-switch-project
+    "f d" 'dired
+
+    "e" 'eshell
+    "g" 'magit-status
+
+    "c" '(:ignore t :which-key "lsp")
+    "c f" 'eglot-format-buffer
+    "c r" 'eglot-rename
+    "c a" 'eglot-code-actions
+    "c d" 'eglot-find-declaration
+    "c D" 'eglot-find-typeDefinition
+    "c m" 'consult-flymake
+    "c h" 'eldoc-box-help-at-point
+    ))
+
+(global-set-key (kbd "<escape>") 'keyboard-quit)
+
+
+;;; Visual Elements
 (use-package which-key
   :ensure t :defer t
   :diminish which-key-mode
   :hook (after-init . which-key-mode)
-  :config
-  (setq which-key-idle-delay 0.25)
-  (which-key-enable-god-mode-support))
+  :custom
+  (which-key-idle-delay 0.25))
 
 (use-package which-key-posframe :ensure t :defer t :hook (which-key-mode . which-key-posframe-mode))
-#+end_src
 
-** UI Enhancement
-*** Theme and Visual Elements
-#+begin_src emacs-lisp
 (use-package base16-theme :ensure t :init (load-theme 'base16-oxocarbon-dark t))
 
 (use-package spacious-padding
@@ -230,11 +121,11 @@
   :hook (after-init . spacious-padding-mode)
   :custom
   (spacious-padding-widths
-        '(:internal-border-width 8
-          :mode-line-width 1
-          :tab-width 2
-          :left-fringe-width 3
-          :right-divider-width 10)))
+   '(:internal-border-width 8
+			                :mode-line-width 1
+			                :tab-width 2
+			                :left-fringe-width 4
+			                :right-divider-width 10)))
 
 (use-package rainbow-delimiters :ensure t :defer t :hook (prog-mode . rainbow-delimiters-mode))
 
@@ -255,11 +146,9 @@
         keycast-mode-line-insert-after 'mode-line-end-spaces)
   (dolist (input '(self-insert-command org-self-insert-command))
     (add-to-list 'keycast-substitute-alist `(,input "." "Typing…"))))
-#+end_src
 
-** Modern Emacs
-*** Completion
-#+begin_src emacs-lisp
+
+;;; Completion
 (use-package cape
   :ensure t
   :config
@@ -281,10 +170,9 @@
         corfu-auto t
         corfu-cycle t
         corfu-popupinfo-delay '(0.5 . 0.25)))
-#+end_src
 
-*** Minibuffers
-#+begin_src emacs-lisp
+
+;;; Minibuffer
 (use-package vertico :ensure t :hook (after-init . vertico-mode))
 (use-package vertico-posframe :ensure t :hook (vertico-mode . vertico-posframe-mode))
 (use-package marginalia :ensure t :hook (after-init . marginalia-mode))
@@ -305,10 +193,9 @@
   (global-set-key [remap recentf] 'consult-recent-file)
   (global-set-key [remap project-switch-to-buffer] 'consult-project-buffer)
   (global-set-key [remap isearch-forward] 'consult-line))
-#+end_src
 
-*** Help Enhancement
-#+begin_src emacs-lisp
+
+;;; Help Enhancement
 (use-package helpful
   :ensure t :defer t
   :bind (([remap describe-function] . helpful-callable)
@@ -317,11 +204,8 @@
          ([remap describe-command] . helpful-command)
          ([remap describe-symbol] . helpful-symbol)))
 
-#+end_src
 
-** Programming Support
-*** Org Mode
-#+begin_src emacs-lisp
+;;; Org Mode
 (use-package org
   :ensure t
   :config
@@ -329,26 +213,23 @@
         org-pretty-entities t
         org-edit-src-content-indentation 0
         org-return-follows-link t))
-#+end_src
 
-*** Version Control
-#+begin_src emacs-lisp
+
+;;; VC
 (use-package magit :ensure t :defer t)
 (use-package transient-posframe :ensure t :defer t :hook (after-init . transient-posframe-mode))
 (use-package git-gutter
   :ensure t :defer t
   :hook (after-init . global-git-gutter-mode)
   :diminish git-gutter-mode)
-#+end_src
 
-*** Lang Support
-#+begin_src emacs-lisp
+
+;;; Lang Support
 (use-package nix-mode :ensure t :defer t)
 (use-package zig-mode :ensure t :defer t :custom (zig-format-on-save nil))
-#+end_src
 
-*** LSP Support
-#+begin_src emacs-lisp
+
+;;; LSP Support
 (use-package eglot
   :ensure t :defer t
   :hook (zig-mode . eglot-ensure)
@@ -366,12 +247,13 @@
   :ensure t :defer t
   :config
   (custom-set-faces
-    '(flymake-error   ((t (:underline (:style wave :color "Red")))))
-    '(flymake-warning ((t (:underline (:style wave :color "Orange")))))
-    '(flymake-note    ((t (:underline (:style wave :color "Blue")))))))
+   '(flymake-error   ((t (:underline (:style wave :color "Red")))))
+   '(flymake-warning ((t (:underline (:style wave :color "Orange")))))
+   '(flymake-note    ((t (:underline (:style wave :color "Blue")))))))
 
 (use-package yasnippet
   :ensure t :defer t
+  :diminish yas-minor-mode
   :hook (prog-mode . yas-minor-mode))
 
 (use-package eldoc
@@ -385,13 +267,11 @@
   :diminish eldoc-box-hover-mode
   :config
   (setq eldoc-idle-delay 0.1))
-#+end_src
 
-** File Management
-*** Dired Configuration
-#+begin_src emacs-lisp
+
+;;; Dired
 (use-package dired
-  :ensure nil :defer t
+  :ensure nil
   :hook
   ((dired-mode . dired-hide-details-mode)
    (dired-mode . hl-line-mode))
@@ -417,19 +297,14 @@
     ("S-TAB" . dired-subtree-remove))
   :custom
   (dired-subtree-use-backgrounds nil))
-#+end_src
 
-** Terminal Support
-*** Eat Terminal
-#+begin_src emacs-lisp
+
+;;; Terminal
 (use-package eat
   :ensure t :defer t
   :hook ((eshell-mode . eat-eshell-mode)
          (eshell-mode . eat-eshell-visual-command-mode)))
-#+end_src
 
-*** Eshell Configuration
-#+begin_src emacs-lisp
 (use-package eshell-syntax-highlighting
   :ensure t :defer t
   :hook (eshell-mode . eshell-syntax-highlighting-mode))
@@ -446,29 +321,27 @@
              (propertize (abbreviate-file-name (eshell/pwd)) 'face `(:foreground ,dir-color))
              (propertize " λ" 'face `(:foreground ,prompt-color))
              (propertize " "))))))
-#+end_src
 
-** Global Modes and Settings
-*** Enable Global Modes
-#+begin_src emacs-lisp
+
+;;; Global Modes
 (global-hl-line-mode 1)
 (global-auto-revert-mode 1)
 (global-so-long-mode 1)
+(global-prettify-symbols-mode 1)
 (electric-pair-mode 1)
 (recentf-mode 1)
 (size-indication-mode 1)
 (pixel-scroll-precision-mode 1)
-(display-battery-mode 1)
 (savehist-mode 1)
 (save-place-mode 1)
 (delete-selection-mode 1)
-#+end_src
 
-*** Default Settings
-#+begin_src emacs-lisp
+
+;;; Defaults
 (setq-default confirm-kill-emacs nil
               ad-redefinition-action 'accept
               display-time-default-load-average nil
+              display-line-numbers 'relative
               confirm-kill-processes nil
               indent-tabs-mode nil
               tab-width 4
@@ -494,39 +367,33 @@
               line-spacing 0.08
               global-auto-revert-non-file-buffers t
               completion-ignore-case t
-              display-line-numbers-width 4
               cursor-in-non-selected-windows nil
-              show-trailing-whitespace t
               find-file-visit-truename nil
               ad-redefinition-action 'accept
               debug-on-error nil
               scroll-margin 3
-              scroll-conservatively 101
+              scroll-conservatively 100000
               scroll-preserve-screen-position t
               scroll-step 5
               auto-window-vscroll nil
               backward-delete-char-untabify-method 'hungry
-              redisplay-skip-fontification-on-input nil
+              redisplay-skip-fontification-on-input t
               truncate-lines t
               vc-follow-symlinks t
               word-wrap t
               cursor-type 'bar
               cursor-in-non-selected-windows nil
               line-move-visual nil)
-#+end_src
 
-*** Server Initialization
-#+begin_src emacs-lisp
+;;; Server
 (use-package server
   :ensure nil :defer t
   :config (unless (server-running-p) (server-start)))
-#+end_src
 
-*** User info
-#+begin_src emacs-lisp
+
+;;; Personal Info
 (setq user-full-name "Mori Zen"
       user-mail-address "71zenith@proton.me"
       default-input-method "japanese"
       display-time-format "%a %d %b %H:%M"
       calendar-week-start-day 1)
-#+end_src
