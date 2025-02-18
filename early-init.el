@@ -1,11 +1,10 @@
-;;; early-init.el -*- lexical-binding: t -*-
+;; early-init.el -*- lexical-binding: t -*-
 
 ;;; Garbage Collection
 (defvar file-name-handler-alist-original file-name-handler-alist)
 (defvar vc-handled-backends-original vc-handled-backends)
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
-
 
 ;;; Performance
 (setq site-run-file nil
@@ -27,12 +26,10 @@
       frame-title-format nil
       frame-resize-pixelwise t
       fast-but-imprecise-scrolling t
-      debug-on-error t)
-
-(setq idle-update-delay 1.0
-      load-prefer-newer t)
-
-(setq font-lock-maximum-decoration t
+      debug-on-error t
+      idle-update-delay 1.0
+      load-prefer-newer t
+      font-lock-maximum-decoration t
       font-lock-multiline t
       font-lock-support-mode 'jit-lock-mode
       jit-lock-stealth-time 1
@@ -41,26 +38,22 @@
       jit-lock-chunk-size 100)
 
 (setq-default bidi-display-reordering nil
-	          bidi-paragraph-direction 'left-to-right)
+              bidi-paragraph-direction 'left-to-right)
 
-
-;;; Minimal Frame 
+;;; Minimal Frame
 (push '(vertical-scroll-bars) default-frame-alist)
 (push '(menu-bar-lines . 0) default-frame-alist)
-(push '(tool-bar-lines . 0) default-frame-alist)
 (push '(tool-bar-lines . 0) default-frame-alist)
 (push '(undecorated-round . t) default-frame-alist)
 (push '(internal-border-width . 0) default-frame-alist)
 
 (tooltip-mode -1)
 
-
 ;;; Font Config
 (let ((mono-font "M PLUS Code Latin"))
   (set-face-attribute 'default nil :family mono-font :height 160)
   (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family mono-font :height 1.0))
-
 
 ;;; Pesky Behaviour
 (setq inhibit-startup-buffer-menu t
@@ -71,7 +64,6 @@
       inhibit-startup-screen t
       inhibit-default-init t
       initial-scratch-message nil)
-
 
 ;;; Native Comp
 (when (featurep 'native-compile)
@@ -85,7 +77,6 @@
 (set-keyboard-coding-system 'utf-8)
 (set-selection-coding-system 'utf-8)
 
-
 ;;; Startup Timer
 (defun zen/display-startup-time ()
   (message "📑 loaded in %s with %d 🚮"
@@ -94,17 +85,16 @@
                     (time-subtract after-init-time before-init-time)))
            gcs-done))
 
-
 ;;; Hooks
 (add-hook 'emacs-startup-hook
           (lambda ()
             (zen/display-startup-time)
             (set-frame-parameter nil 'alpha-background 100)
-            (add-to-list 'default-frame-alist '(alpha-background . 100)))
-          (setq gc-cons-threshold (* 16 1024 1024)
-                gc-cons-percentage 0.1
-                vc-handled-backends vc-handled-backends-original
-                file-name-handler-alist file-name-handler-alist-original))
+            (add-to-list 'default-frame-alist '(alpha-background . 100))
+            (setq gc-cons-threshold (* 16 1024 1024)
+                  gc-cons-percentage 0.1
+                  vc-handled-backends vc-handled-backends-original
+                  file-name-handler-alist file-name-handler-alist-original)))
 
 (setq custom-file (locate-user-emacs-file "var/custom.el"))
 (load custom-file :no-error-if-missing)
