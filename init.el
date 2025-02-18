@@ -58,6 +58,11 @@
   :config
   (general-evil-setup)
 
+  (general-def
+    "C-=" 'text-scale-increase
+    "C--" 'text-scale-decrease
+    "C-0" (lambda () (interactive) (text-scale-set 0)))
+
   (general-create-definer leader-keys
     :states '(normal insert visual emacs)
     :keymaps 'override
@@ -67,14 +72,22 @@
   (leader-keys
     "x" '(execute-extended-command :which-key "M-x")
     ":" '(eval-expression :which-key "M-:")
-    "r" 'restart-emacs
-    "i" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init file")
+    "r" '(restart-emacs :which-key "restart")
+    "q" '(exit-emacs :which-key "exit")
+    "i" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init")
 
     "b" '(:ignore t :which-key "buffer")
     "b d" 'kill-current-buffer
     "b b" 'consult-buffer
     "b p" 'previous-buffer
     "b n" 'next-buffer
+
+    "w" '(:ignore t :which-key "window")
+    "w c" 'delete-window
+    "w v" 'evil-window-vsplit
+    "w s" 'evil-window-split
+    "w n" 'evil-window-next
+    "w p" 'evil-window-prev
 
     "h" '(:ignore t :which-key "help")
     "h f" 'helpful-callable
@@ -84,18 +97,21 @@
     "f" '(:ignore t :which-key "file")
     "f s" 'save-buffer
     "f f" 'find-file
+    "f g" 'consult-find
+    "f G" 'consult-ripgrep
     "f r" 'consult-recent-file
     "f p" 'project-switch-project
     "f d" 'dired
 
     "e" 'eshell
-    "g" 'magit-status
+    "g" '(magit-status :which-key "git")
 
     "c" '(:ignore t :which-key "lsp")
     "c f" 'eglot-format-buffer
     "c r" 'eglot-rename
     "c a" 'eglot-code-actions
     "c d" 'eglot-find-declaration
+    "c i" 'eglot-find-implementation
     "c D" 'eglot-find-typeDefinition
     "c m" 'consult-flymake
     "c h" 'eldoc-box-help-at-point
@@ -112,7 +128,10 @@
   :custom
   (which-key-idle-delay 0.25))
 
-(use-package which-key-posframe :ensure t :defer t :hook (which-key-mode . which-key-posframe-mode))
+(use-package which-key-posframe
+  :ensure t :defer t
+  :hook (which-key-mode . which-key-posframe-mode)
+  :custom (which-key-posframe-parameters '((left-fringe . 5) (right-fringe . 5))))
 
 (use-package base16-theme :ensure t :init (load-theme 'base16-oxocarbon-dark t))
 
@@ -174,13 +193,17 @@
 
 ;;; Minibuffer
 (use-package vertico :ensure t :hook (after-init . vertico-mode))
-(use-package vertico-posframe :ensure t :hook (vertico-mode . vertico-posframe-mode))
+(use-package vertico-posframe
+  :ensure t
+  :hook (vertico-mode . vertico-posframe-mode)
+  :custom (vertico-posframe-parameters '((left-fringe . 5) (right-fringe . 5))))
+
 (use-package marginalia :ensure t :hook (after-init . marginalia-mode))
 
 (use-package orderless
   :ensure t
   :config
-  (setq completion-styles '(orderless substring )
+  (setq completion-styles '(orderless substring)
         completion-category-overrides '((file (styles partial-completion)))))
 
 (use-package consult
@@ -188,9 +211,6 @@
   :config
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
-  (global-set-key [remap switch-to-buffer] 'consult-buffer)
-  (global-set-key [remap load-theme] 'consult-theme)
-  (global-set-key [remap recentf] 'consult-recent-file)
   (global-set-key [remap project-switch-to-buffer] 'consult-project-buffer)
   (global-set-key [remap isearch-forward] 'consult-line))
 
@@ -243,6 +263,13 @@
   :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest :branch "main")
   :hook (eglot-booster-mode . eglot-ensure))
 
+
+(use-package yasnippet
+  :ensure t :defer t
+  :diminish yas-minor-mode
+  :hook (prog-mode . yas-minor-mode))
+
+;;; Diagnostics
 (use-package flymake
   :ensure t :defer t
   :config
@@ -250,11 +277,6 @@
    '(flymake-error   ((t (:underline (:style wave :color "Red")))))
    '(flymake-warning ((t (:underline (:style wave :color "Orange")))))
    '(flymake-note    ((t (:underline (:style wave :color "Blue")))))))
-
-(use-package yasnippet
-  :ensure t :defer t
-  :diminish yas-minor-mode
-  :hook (prog-mode . yas-minor-mode))
 
 (use-package eldoc
   :ensure t :defer t
@@ -265,8 +287,7 @@
   :ensure t :defer t
   :hook (eldoc-mode . eldoc-box-hover-mode)
   :diminish eldoc-box-hover-mode
-  :config
-  (setq eldoc-idle-delay 0.1))
+  :custom (eldoc-idle-delay 0.1))
 
 
 ;;; Dired
