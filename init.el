@@ -70,7 +70,7 @@
     "x" '(execute-extended-command :which-key "M-x")
     ":" '(eval-expression :which-key "M-:")
     "r" '(restart-emacs :which-key "restart")
-    "q" '(exit-emacs :which-key "exit")
+    "q" '(kill-emacs :which-key "exit")
     "i" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init")
 
     "b" '(:ignore t :which-key "buffer")
@@ -136,29 +136,22 @@
   :custom
   (spacious-padding-widths
    '(:internal-border-width 8
-     :mode-line-width 1
-     :tab-width 2
-     :left-fringe-width 4
-     :right-divider-width 10)))
+                            :mode-line-width 1
+                            :tab-width 2
+                            :left-fringe-width 4
+                            :right-divider-width 10)))
 
 (use-package rainbow-delimiters :defer t :hook (prog-mode . rainbow-delimiters-mode))
 (use-package highlight-numbers :defer t :hook (prog-mode . highlight-numbers-mode))
 
-(use-package popwin
+(use-package popper
   :defer t
-  :hook (after-init . popwin-mode)
+  :hook ((after-init . popper-mode)
+         (after-init . popper-echo-mode))
+  :bind (("C-`"   . popper-toggle))
   :config
-  (push '("^\*.*\*$" :regexp t) popwin:special-display-config))
-
-(use-package keycast
-  :defer t
-  ;; :hook (after-init . keycast-mode-line-mode)
-  :config
-  (setq keycast-mode-line-format "%2s%K%C%R "
-        keycast-mode-line-remove-tail-elements nil
-        keycast-mode-line-insert-after 'mode-line-end-spaces)
-  (dolist (input '(self-insert-command org-self-insert-command))
-    (add-to-list 'keycast-substitute-alist `(,input "." "Typing…"))))
+  (setq popper-reference-buffers '("\\*.*\\*")
+        popper-mode-line `(:eval (propertize " POP" 'face '(:foregorund ,(face-foreground 'font-lock-warning-face) :weight bold)))))
 
 ;;; Completion
 (use-package cape
@@ -206,10 +199,16 @@
 ;;; VC
 (use-package magit :defer t)
 (use-package transient-posframe :defer t :hook (after-init . transient-posframe-mode))
-(use-package git-gutter
+(use-package diff-hl
   :defer t
-  :hook (after-init . global-git-gutter-mode)
-  :diminish git-gutter-mode)
+  :hook (after-init . global-diff-hl-mode)
+  :diminish diff-hl-mode)
+
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :config
+  (global-flycheck-eglot-mode 1))
 
 ;;; Lang Support
 (use-package nix-mode :defer t)
@@ -277,8 +276,7 @@
   :hook (dired-mode . dired-async-mode))
 
 (use-package dired-subtree
-  :defer t
-  :after dired
+  :defer t :after dired
   :bind
   (:map dired-mode-map
         ("<tab>" . dired-subtree-toggle)
@@ -299,6 +297,7 @@
 
 (use-package eshell
   :defer t
+  :hook (eshell-mode . (lambda () (eshell/alias "c" "clear-scrollback")))
   :config
   (setq eshell-banner-message ""
         eshell-prompt-function
@@ -308,21 +307,22 @@
             (concat
              (propertize (abbreviate-file-name (eshell/pwd)) 'face `(:foreground ,dir-color))
              (propertize " λ" 'face `(:foreground ,prompt-color))
-             (propertize " "))))))
+             (propertize " "))))
+        ))
 
 ;;; Global Modes
 (dolist (mode '(global-hl-line-mode
-                 global-auto-revert-mode
-                 global-so-long-mode
-                 global-prettify-symbols-mode
-                 electric-pair-mode
-                 recentf-mode
-                 size-indication-mode
-                 column-number-mode
-                 pixel-scroll-precision-mode
-                 savehist-mode
-                 save-place-mode
-                 delete-selection-mode))
+                global-auto-revert-mode
+                global-so-long-mode
+                global-prettify-symbols-mode
+                electric-pair-mode
+                recentf-mode
+                size-indication-mode
+                column-number-mode
+                pixel-scroll-precision-mode
+                savehist-mode
+                save-place-mode
+                delete-selection-mode))
   (funcall mode 1))
 
 (add-hook 'prog-mode-hook 
@@ -337,7 +337,6 @@
  confirm-kill-emacs nil
  confirm-kill-processes nil
  use-short-answers t
- debug-on-error nil
 
  ;; Editing behavior
  indent-tabs-mode nil
@@ -388,16 +387,8 @@
  scroll-step 5
  auto-window-vscroll nil
 
- ;; Performance
- redisplay-skip-fontification-on-input t
-
  ;; Miscellaneous
  ad-redefinition-action 'accept)
-
-;;; Server
-(use-package server
-  :ensure nil :defer t
-  :config (unless (server-running-p) (server-start)))
 
 ;;; Personal Info
 (setq user-full-name "Mori Zen"
@@ -406,4 +397,19 @@
       display-time-format "%a %d %b %H:%M"
       calendar-week-start-day 1)
 
-(setq-default mode-line-format (list " ⛩️" mode-line-format))
+(setq-default
+ mode-line-right-align-edge 'right-fringe
+ mode-line-format
+ `(
+   (:eval (propertize (format " [%s]" (substring current-input-method 0 2)) 'face '(:foreground ,(face-foreground 'font-lock-preprocessor-face) :weight bold)))
+   (:eval (propertize evil-mode-line-tag 'face '(:foreground ,(face-foreground 'font-lock-regexp-grouping-construct))))
+   (:eval (propertize " %I " 'face '(:foreground ,(face-foreground 'elisp-shorthand-font-lock-face))))
+   (:eval (propertize " %l:%c " 'face '(:foreground ,(face-foreground 'font-lock-type-face))))
+   (:eval (propertize " %p " 'face '(:foreground ,(face-foreground 'font-lock-builtin-face))))
+   (:eval (propertize (format "%s  " (project-mode-line-format)) 'face '(:foreground ,(face-foreground 'font-lock-string-face) :weight bold)))
+   flymake-mode-line-counters
+   mode-line-format-right-align
+   (:eval (propertize (format " %s " (capitalize (substring vc-mode 5))) 'face '(:foreground ,(face-foreground 'font-lock-string-face) :weight bold)))
+   (:eval (propertize " %b  " 'face '(:foreground ,(face-foreground 'font-lock-type-face) :weight bold)))
+   (:eval (propertize (capitalize (symbol-name major-mode)) 'face '(:foreground ,(face-foreground 'font-lock-function-name-face) :weight bold)))
+   ))
