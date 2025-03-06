@@ -6,6 +6,7 @@
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
 
+(setq package-enable-at-startup nil)
 
 ;;; Performance
 (setq site-run-file nil
@@ -56,7 +57,7 @@
 
 
 ;;; Font Config
-(let ((mono-font "M PLUS Code Latin"))
+(let ((mono-font "M Plus Code Latin"))
   (set-face-attribute 'default nil :family mono-font :height 150)
   (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family mono-font :height 1.0))
@@ -99,8 +100,8 @@
 (add-hook 'emacs-startup-hook
           (lambda ()
             (zen/display-startup-time)
-            (set-frame-parameter nil 'alpha-background 100)
-            (add-to-list 'default-frame-alist '(alpha-background . 100)))
+            (set-frame-parameter nil 'alpha-background 95)
+            (add-to-list 'default-frame-alist '(alpha-background . 95)))
           (setq gc-cons-threshold (* 16 1024 1024)
                 gc-cons-percentage 0.1
                 vc-handled-backends vc-handled-backends-original
